@@ -30,6 +30,7 @@ import { readResource } from "./reader.ts";
 import { configExclude, loadConfig, resolveRoots } from "./roots.ts";
 import { searchEntries } from "./search.ts";
 import { isStale } from "./trust.ts";
+import { buildUsageRows, UsagePopupComponent } from "./usage-popup.ts";
 import { isUsageEvent, UsageRegistry, type UsageEvent, type UsageSource } from "./usage.ts";
 
 const USAGE_ENTRY_TYPE = "okf-god:usage";
@@ -487,17 +488,33 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
           ctx.ui.notify("No OKF resources used this session yet.", "info");
           return;
         }
-        const recent = usage
-          .events()
-          .slice(0, 8)
-          .map((event) => `${event.kind}/${event.name} (${event.source})`);
-        ctx.ui.notify(
-          boundText(
-            `OKF usage — ${counts.skill} skills · ${counts.doc} docs · ${counts.agent} agents\n` +
-              recent.join("\n"),
-          ),
-          "info",
-        );
+        // Catalog failure must not break the popup: rows fall back to names.
+        let titles = new Map<string, string>();
+        try {
+          const state = await ensureCatalog();
+          titles = new Map(state.entries.map((entry) => [entry.path, entry.title || entry.name]));
+        } catch {
+          // catalog unavailable — names only
+        }
+        const events = usage.events();
+        if (!ctx.hasUI) {
+          const recent = events
+            .slice(0, 8)
+            .map((event) => `${event.kind}/${event.name} (${event.source})`);
+          ctx.ui.notify(
+            boundText(
+              `OKF usage — ${counts.skill} skills · ${counts.doc} docs · ${counts.agent} agents\n` +
+                recent.join("\n"),
+            ),
+            "info",
+          );
+          return;
+        }
+        const rows = buildUsageRows(events, { cwd, titleFor: (event) => titles.get(event.path) });
+        await ctx.ui.custom<void>((_tui, theme, _kb, done) => new UsagePopupComponent(rows, theme, done), {
+          overlay: true,
+          overlayOptions: { anchor: "center", width: 72, maxHeight: 20 },
+        });
       } catch (error) {
         warn(ctx, error);
       }
