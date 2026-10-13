@@ -54,10 +54,20 @@ Benchmark of token consumption and retrieval accuracy: **okf-god vs standard pi*
 
 ## Evidence log
 
+- Full matrix run 2026-10-13 (`bench/results/full-rep3/`, gitignored): 72/72
+  invocations, 0 timeouts, all stop=stop. Accuracy 1.000 ± 0.000 on every
+  cell (both arms, both suites) — fixture S does not discriminate accuracy.
+  Token means per run: fact-qa okf-god 6,571 vs standard 4,685 total (+40%,
+  input +142, cacheRead +1,736); multi-hop 11,491 vs 7,200 (+60%, input +25
+  ≈ parity, cacheRead +4,235). Latency: okf-god 14.0s/21.9s vs 8.3s/9.8s
+  (fact-qa/multi-hop) — tool round-trips dominate. Honest reading: at S
+  size okf-god pays per-round cache/latency overhead; its input-parity on
+  multi-hop plus earlier input reductions suggest the discriminating
+  experiments are larger fixtures (M/L) and distractor-hardened tasks.
+
 - Work-unit commits: `2184ad7` feat(bench): token and accuracy benchmark of
   okf-god vs standard pi (bench/); `e594898` docs: repository README
-  (benchmark section).
-- 2026-10-13: feasibility designed in session; user chose core scope
+  (benchmark section).- 2026-10-13: feasibility designed in session; user chose core scope
   (okf-god vs standard pi, no external harness adapters).
 - 2026-10-13 headless contract (gentle-ai-explore, verified against installed
   pi 1.2.0 dist/):
