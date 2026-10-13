@@ -57,6 +57,9 @@ into `~/.pi/agent/extensions/`).
 
 ## Evidence log
 
+- Work-unit commits: `6279ceb` feat: OKF v0.2 catalog extension with graph
+  navigation and usage tracking (src/, tests/, scaffold, architecture doc);
+  `2184ad7` feat(bench); `e594898` docs: repository README.
 - Exploration: pi 1.2.0 extension API confirmed (registerTool/registerCommand/
   setWidget/appendEntry/session_start); examples read: dynamic-tools.ts,
   commands.ts, widget-placement.ts; user agents at `~/.pi/agent/agents/*.md`

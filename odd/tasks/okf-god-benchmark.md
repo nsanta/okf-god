@@ -54,6 +54,9 @@ Benchmark of token consumption and retrieval accuracy: **okf-god vs standard pi*
 
 ## Evidence log
 
+- Work-unit commits: `2184ad7` feat(bench): token and accuracy benchmark of
+  okf-god vs standard pi (bench/); `e594898` docs: repository README
+  (benchmark section).
 - 2026-10-13: feasibility designed in session; user chose core scope
   (okf-god vs standard pi, no external harness adapters).
 - 2026-10-13 headless contract (gentle-ai-explore, verified against installed
