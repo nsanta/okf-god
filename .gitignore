@@ -3,3 +3,5 @@ dist/
 *.log
 # Local Pi runtime state
 .atl/
+# Benchmark generated results
+bench/results/
