@@ -33,4 +33,7 @@ current `/okf-usage` notification summary.
 
 ## Evidence
 
-(work-unit commit ids recorded here after each task closes)
+- T1–T3: commit `964c6e2` — feat(tui): show session OKF usage in popup overlay
+  with title and relative path (branch `feature/usage-popup`). Checks:
+  `npm run typecheck` exit 0; `npm test` 11 files / 68 tests passed
+  (independent gentle-ai-verify run).
