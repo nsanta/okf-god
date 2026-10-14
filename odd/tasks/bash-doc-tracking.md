@@ -63,5 +63,14 @@ Usage tracking misses two access paths:
   `consent: declined_this_candidate`, no review record created). Provider
   assessed the candidate HIGH risk (7 files / 419 lines; evidence: "code
   that starts other processes in src/index.ts" — the bash-wiring change).
-  Future reviews stay enabled; delivery follows ordinary repository policy
-  on the verification evidence above.
+  Future reviews stay enabled.
+- MERGE GATE (process correction after background-reviewer finding): the
+  first decline was closed without carrying the risk forward. Standing
+  condition until lifted: **this branch must NOT be merged or pushed
+  until a native review of this candidate is run and approved, or the
+  user explicitly waives the review.** Technical context: the extension
+  spawns no processes; it observes the host's bash tool calls — the
+  provider's heuristic keyed on the bash wiring in index.ts. Review focus
+  when run: bash-paths tokenizer correctness (quote/operator handling),
+  tool_call→tool_result race safety, UsageSource backward compatibility,
+  false-positive profile of the denylist heuristic.
