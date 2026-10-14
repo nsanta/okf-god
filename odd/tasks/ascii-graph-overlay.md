@@ -59,4 +59,4 @@ usage popup) showing an ASCII rendering of the OKF link graph:
   --mermaid unchanged, no-UI emits ASCII with ──▶ and ✗ marks);
   `git diff src/graph.ts` confirmed nodes() is the only change and
   `toMermaid` is untouched.
-- Work-unit commit: (pending)
+- Work-unit commit: d3424ce `feat(tui): render OKF link graph as ASCII overlay in /okf-graph`.
