@@ -59,4 +59,12 @@ usage popup) showing an ASCII rendering of the OKF link graph:
   --mermaid unchanged, no-UI emits ASCII with ──▶ and ✗ marks);
   `git diff src/graph.ts` confirmed nodes() is the only change and
   `toMermaid` is untouched.
-- Work-unit commit: d3424ce `feat(tui): render OKF link graph as ASCII overlay in /okf-graph`.
+- Work-unit commit: d3424ce `feat(tui): render OKF link graph as ASCII overlay
+  in /okf-graph`.
+- Native review (RDD on): DECLINED for this candidate by explicit user
+  decision (consent relayed losslessly; provider recorded
+  `consent: declined_this_candidate`, lineage review-97afd680a81759ac was
+  pre-allocated but no review record was created). Candidate was medium
+  risk, 8 files / 531 lines, target sha256:7b4ab93e…. Future reviews stay
+  enabled; this is not the kill switch. Delivery follows ordinary
+  repository policy on the strength of the verification evidence above.
