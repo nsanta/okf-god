@@ -68,7 +68,12 @@ Usage tracking misses two access paths:
   first decline was closed without carrying the risk forward. Standing
   condition until lifted: **this branch must NOT be merged or pushed
   until a native review of this candidate is run and approved, or the
-  user explicitly waives the review.** Technical context: the extension
+  user explicitly waives the review.**
+  GATE LIFTED 2026-10-14: the user explicitly waived the review for this
+  candidate and instructed the merge into main ("merge all the features
+  into main" — waiver option selected). Merged unreviewed by user
+  decision; the risk note and review focus below remain on record for
+  post-merge follow-up. Technical context: the extension
   spawns no processes; it observes the host's bash tool calls — the
   provider's heuristic keyed on the bash wiring in index.ts. Review focus
   when run: bash-paths tokenizer correctness (quote/operator handling),
