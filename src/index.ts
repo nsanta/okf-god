@@ -24,7 +24,9 @@ import {
   type CatalogRoots,
   CATALOG_KINDS,
 } from "./catalog.ts";
+import { toAsciiGraph } from "./graph-ascii.ts";
 import { buildLinkGraph, type LinkGraph } from "./graph.ts";
+import { GraphPopupComponent } from "./graph-popup.ts";
 import { parseFrontmatter } from "./frontmatter.ts";
 import { readResource } from "./reader.ts";
 import { configExclude, loadConfig, resolveRoots } from "./roots.ts";
@@ -448,13 +450,25 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
   });
 
   pi.registerCommand("okf-graph", {
-    description: "Show a bounded Mermaid view of the OKF link graph",
-    handler: async (_args, ctx) => {
+    description: "Render the OKF link graph in a scrollable overlay (--mermaid exports Mermaid text)",
+    handler: async (args, ctx) => {
       try {
         const graph = await ensureGraph();
-        // Command handlers return void (no model-facing return), so the graph
-        // is surfaced as a bounded notification.
-        ctx.ui.notify(boundText(graph.toMermaid(40)), "info");
+        if (args.trim() === "--mermaid") {
+          // Text export for Mermaid renderers (the pre-overlay behavior).
+          ctx.ui.notify(boundText(graph.toMermaid(40)), "info");
+          return;
+        }
+        const result = toAsciiGraph(graph);
+        if (!ctx.hasUI) {
+          // No TUI: fall back to a bounded notification with the ASCII lines.
+          ctx.ui.notify(boundText(result.lines.join("\n")), "info");
+          return;
+        }
+        await ctx.ui.custom<void>((_tui, theme, _kb, done) => new GraphPopupComponent(result, theme, done), {
+          overlay: true,
+          overlayOptions: { anchor: "center", width: 72, maxHeight: 20 },
+        });
       } catch (error) {
         warn(ctx, error);
       }

@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import okfGodExtension from "../src/index.ts";
+import { GraphPopupComponent } from "../src/graph-popup.ts";
 
 const FIXTURES = mkdtempSync(join(tmpdir(), "okf-wiring-"));
 afterAll(() => {
@@ -238,5 +239,47 @@ describe("okf-god wiring", () => {
     // Usage state survives: session_start after reload still lists it.
     void handlers;
     expect(appended).toHaveLength(0);
+  });
+
+  it("okf-graph with UI opens the graph overlay", async () => {
+    const { commands } = await setup();
+    const fakeTheme = { fg: (_token: string, text: string) => text };
+    const custom = vi.fn(async (factory: any) => factory(undefined, fakeTheme, undefined, () => {}));
+    const ctx = mockCtx({
+      hasUI: true,
+      ui: { notify: vi.fn(), setWidget: vi.fn(), custom },
+    });
+
+    await commands.get("okf-graph")!.handler("", ctx);
+
+    expect(custom).toHaveBeenCalledTimes(1);
+    const [factory, options] = custom.mock.calls[0] as unknown as [any, any];
+    expect(options).toEqual({ overlay: true, overlayOptions: { anchor: "center", width: 72, maxHeight: 20 } });
+    expect(factory(undefined, fakeTheme, undefined, () => {})).toBeInstanceOf(GraphPopupComponent);
+    expect(ctx.ui.notify).not.toHaveBeenCalled();
+  });
+
+  it("okf-graph --mermaid keeps the Mermaid text notification", async () => {
+    const { commands } = await setup();
+    const custom = vi.fn();
+    const ctx = mockCtx({ hasUI: true, ui: { notify: vi.fn(), setWidget: vi.fn(), custom } });
+
+    await commands.get("okf-graph")!.handler("--mermaid", ctx);
+
+    expect(ctx.ui.notify).toHaveBeenCalledWith(expect.stringContaining("flowchart LR"), "info");
+    expect(custom).not.toHaveBeenCalled();
+  });
+
+  it("okf-graph without UI notifies bounded ASCII lines instead of Mermaid", async () => {
+    const { commands } = await setup();
+    const ctx = mockCtx(); // hasUI: false
+
+    await commands.get("okf-graph")!.handler("", ctx);
+
+    expect(ctx.ui.notify).toHaveBeenCalledTimes(1);
+    const text = ctx.ui.notify.mock.calls[0][0] as string;
+    expect(text).not.toContain("flowchart LR");
+    // The fixture workspace always has the deploy ──▶ runbook link.
+    expect(text).toContain("──▶");
   });
 });

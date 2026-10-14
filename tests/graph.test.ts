@@ -133,4 +133,13 @@ describe("toMermaid", () => {
     const { graph } = await buildBundle("empty");
     expect(graph.toMermaid()).toMatch(/flowchart LR/);
   });
+
+  it("nodes() lists every catalog entry with stable content", async () => {
+    write("nodes-view/a.md", "---\ntype: Reference\n---\nSee [hub](./hub.md).\n");
+    write("nodes-view/hub.md", "---\ntype: Reference\n---\n");
+    const { root, graph } = await buildBundle("nodes-view");
+    const paths = graph.nodes().map((entry) => entry.path).sort();
+    expect(paths).toEqual([join(root, "a.md"), join(root, "hub.md")].sort());
+    expect(graph.nodes()).toEqual(graph.nodes());
+  });
 });

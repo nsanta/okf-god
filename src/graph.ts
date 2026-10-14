@@ -195,6 +195,11 @@ export class LinkGraph {
     return this.nodesByPath.get(path);
   }
 
+  /** All catalog entries in the graph (for whole-graph views). */
+  nodes(): CatalogEntry[] {
+    return [...this.nodesByPath.values()];
+  }
+
   /** Edges from other documents into `path`. */
   backlinks(path: string): LinkEdge[] {
     return [...(this.backlinksByTarget.get(path) ?? [])];
