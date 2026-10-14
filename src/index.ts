@@ -16,6 +16,7 @@ import type {
   ToolResultEvent,
 } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
+import { extractCatalogPaths } from "./bash-paths.ts";
 import {
   CatalogCache,
   scanCatalog,
@@ -54,7 +55,9 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
   let catalogPromise: Promise<CatalogState> | null = null;
   let graphPromise: Promise<LinkGraph> | null = null;
   const usage = new UsageRegistry();
-  const pendingReads = new Map<string, CatalogEntry>();
+  // Native tool detection stashes catalog matches per tool call; `via` keeps
+  // the detection route so tool_result maps the right UsageSource per entry.
+  const pendingReads = new Map<string, { via: "read" | "bash"; entries: CatalogEntry[] }>();
 
   // --- lazy state ---------------------------------------------------------
 
@@ -591,7 +594,7 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
         }
       }
 
-      // Read-shaped tools reading a cataloged skill or agent file. Awaited so
+      // Read-shaped tools reading a cataloged skill, doc, or agent file. Awaited so
       // pendingReads is settled before the matching tool_result can fire.
       if (event.toolName === "read" || (/read/i.test(event.toolName) && event.toolName !== "okf_read")) {
         const pathValue = readPathFrom(input);
@@ -599,14 +602,28 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
           try {
             const state = await ensureCatalog();
             const match = state.entries.find(
-              (entry) =>
-                (entry.kind === "skill" || entry.kind === "agent") &&
-                (entry.path === pathValue || entry.path === resolveMaybeRelative(pathValue)),
+              (entry) => entry.path === pathValue || entry.path === resolveMaybeRelative(pathValue),
             );
-            if (match) pendingReads.set(event.toolCallId, match);
+            if (match) pendingReads.set(event.toolCallId, { via: "read", entries: [match] });
           } catch {
             // catalog unavailable: skip detection silently
           }
+        }
+      }
+
+      // Bash-shaped tools: heuristic path extraction from the command string,
+      // exact catalog matches only (read-access heuristic; see bash-paths.ts).
+      if (/bash|shell|exec/i.test(event.toolName) && !/^okf_/.test(event.toolName)) {
+        try {
+          const state = await ensureCatalog();
+          const matches = extractCatalogPaths(
+            String(input["command"] ?? input["script"] ?? ""),
+            state.entries,
+            resolveMaybeRelative,
+          );
+          if (matches.length > 0) pendingReads.set(event.toolCallId, { via: "bash", entries: matches });
+        } catch {
+          // catalog unavailable: skip detection silently
         }
       }
     } catch (error) {
@@ -616,12 +633,16 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
 
   pi.on("tool_result", (event: ToolResultEvent, ctx) => {
     try {
-      const match = pendingReads.get(event.toolCallId);
-      if (!match) return;
+      const pending = pendingReads.get(event.toolCallId);
+      if (!pending) return;
       pendingReads.delete(event.toolCallId);
       if (event.isError) return;
-      const source: UsageSource = match.kind === "skill" ? "skill_read" : "agent_read";
-      recordUsage({ kind: match.kind, name: match.name, path: match.path, source, ts: Date.now() }, ctx);
+      for (const match of pending.entries) {
+        // Bash-derived matches are read-access heuristics regardless of kind;
+        // native reads map source per entry kind.
+        const source: UsageSource = pending.via === "bash" ? "bash_read" : usageSourceForKind(match.kind);
+        recordUsage({ kind: match.kind, name: match.name, path: match.path, source, ts: Date.now() }, ctx);
+      }
     } catch (error) {
       warn(ctx, error);
     }
@@ -644,6 +665,10 @@ function readPathFrom(input: Record<string, unknown>): string | undefined {
     if (typeof value === "string" && value.trim().length > 0) return value.trim();
   }
   return undefined;
+}
+
+function usageSourceForKind(kind: CatalogKind): UsageSource {
+  return kind === "skill" ? "skill_read" : kind === "agent" ? "agent_read" : "doc_read";
 }
 
 function countSources(value: unknown): number {

@@ -1,5 +1,16 @@
-/** What triggered a usage record. `agent_read` covers native reads of agent files. */
-export type UsageSource = "okf_read" | "skill_read" | "agent_read" | "agent_spawn";
+/**
+ * What triggered a usage record. `agent_read` covers native reads of agent
+ * files, `doc_read` native reads of docs, and `bash_read` cataloged files
+ * referenced by a bash command. Legacy sources must keep validating (session
+ * replay of pre-existing events).
+ */
+export type UsageSource =
+  | "okf_read"
+  | "skill_read"
+  | "agent_read"
+  | "agent_spawn"
+  | "doc_read"
+  | "bash_read";
 
 export interface UsageEvent {
   kind: "skill" | "doc" | "agent";
@@ -10,7 +21,14 @@ export interface UsageEvent {
 }
 
 const KINDS: readonly UsageEvent["kind"][] = ["skill", "doc", "agent"];
-const SOURCES: readonly UsageSource[] = ["okf_read", "skill_read", "agent_read", "agent_spawn"];
+const SOURCES: readonly UsageSource[] = [
+  "okf_read",
+  "skill_read",
+  "agent_read",
+  "agent_spawn",
+  "doc_read",
+  "bash_read",
+];
 
 export interface UsageCounts {
   skill: number;

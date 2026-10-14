@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { UsageRegistry, type UsageEvent } from "../src/usage.ts";
+import { isUsageEvent, UsageRegistry, type UsageEvent } from "../src/usage.ts";
 
 function event(partial: Partial<UsageEvent>): UsageEvent {
   return {
@@ -45,5 +45,18 @@ describe("UsageRegistry", () => {
     expect(UsageRegistry.deserialize("not json").events()).toEqual([]);
     expect(UsageRegistry.deserialize("[{}]").events()).toEqual([]);
     expect(UsageRegistry.deserialize("42").events()).toEqual([]);
+  });
+});
+
+describe("isUsageEvent sources", () => {
+  it("accepts every legacy source plus the new doc_read and bash_read", () => {
+    const sources = ["okf_read", "skill_read", "agent_read", "agent_spawn", "doc_read", "bash_read"] as const;
+    for (const source of sources) {
+      expect(isUsageEvent(event({ source }))).toBe(true);
+    }
+  });
+
+  it("rejects unknown sources", () => {
+    expect(isUsageEvent(event({ source: "telepathy" as UsageEvent["source"] }))).toBe(false);
   });
 });

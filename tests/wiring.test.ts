@@ -217,6 +217,65 @@ describe("okf-god wiring", () => {
     expect(event).toMatchObject({ kind: "agent", name: "reviewer" });
   });
 
+  it("detects cataloged docs accessed via bash and records bash_read usage", async () => {
+    const { handlers, appended } = await setup();
+    const toolCall = handlers.get("tool_call")![0];
+    const toolResult = handlers.get("tool_result")![0];
+    const ctx = mockCtx({ hasUI: false });
+
+    toolCall(
+      { type: "tool_call", toolCallId: "bash1", toolName: "bash", input: { command: "cat docs/runbook.md" } },
+      ctx,
+    );
+    await new Promise((resolveQueue) => setTimeout(resolveQueue, 10)); // let detection settle
+    toolResult(
+      { type: "tool_result", toolCallId: "bash1", toolName: "bash", input: {}, content: [], isError: false },
+      ctx,
+    );
+
+    const event = appended.map((entry) => entry.data).find((data: any) => data?.source === "bash_read");
+    expect(event).toMatchObject({ kind: "doc", name: "runbook", source: "bash_read" });
+  });
+
+  it("records nothing when a denylisted bash verb touches a cataloged doc", async () => {
+    const { handlers, appended } = await setup();
+    const toolCall = handlers.get("tool_call")![0];
+    const toolResult = handlers.get("tool_result")![0];
+    const ctx = mockCtx({ hasUI: false });
+
+    toolCall(
+      { type: "tool_call", toolCallId: "bash2", toolName: "bash", input: { command: "rm docs/runbook.md" } },
+      ctx,
+    );
+    await new Promise((resolveQueue) => setTimeout(resolveQueue, 10));
+    toolResult(
+      { type: "tool_result", toolCallId: "bash2", toolName: "bash", input: {}, content: [], isError: false },
+      ctx,
+    );
+
+    expect(appended).toHaveLength(0);
+  });
+
+  it("detects native reads of cataloged docs and records doc_read usage", async () => {
+    const { handlers, appended } = await setup();
+    const toolCall = handlers.get("tool_call")![0];
+    const toolResult = handlers.get("tool_result")![0];
+    const ctx = mockCtx({ hasUI: false });
+
+    toolCall(
+      { type: "tool_call", toolCallId: "read1", toolName: "read", input: { path: join(CWD, "docs/runbook.md") } },
+      ctx,
+    );
+    await new Promise((resolveQueue) => setTimeout(resolveQueue, 10)); // let detection settle
+    toolResult(
+      { type: "tool_result", toolCallId: "read1", toolName: "read", input: {}, content: [], isError: false },
+      ctx,
+    );
+
+    const event = appended.map((entry) => entry.data).find((data: any) => data?.source === "doc_read");
+    expect(event).toMatchObject({ kind: "doc", name: "runbook", source: "doc_read" });
+  });
+
   it("ignores unknown event shapes without throwing", async () => {
     const { handlers } = await setup();
     const ctx = mockCtx();
