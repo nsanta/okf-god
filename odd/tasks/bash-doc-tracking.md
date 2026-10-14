@@ -50,3 +50,12 @@ Usage tracking misses two access paths:
 ## Evidence
 
 - (pending)
+- Implemented by `gentle-ai-worker` with strict TDD (RED: 3 failures
+  observed pre-implementation; GREEN after). Verified by `gentle-ai-verify`:
+  14 files / 114 tests (run twice, reproducible), `tsc --noEmit` clean,
+  behaviors a-e spot-checked, no race in tool_call→tool_result ordering,
+  no test deleted or weakened. Note: bash detection is heuristic by design
+  (denylisted verbs, variable-built paths untracked); pre-existing `-t`
+  single-test isolation quirk in wiring.test.ts documented, not introduced
+  by this change.
+- Native review (RDD on): (pending)
