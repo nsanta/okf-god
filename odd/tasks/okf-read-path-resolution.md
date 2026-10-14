@@ -49,4 +49,5 @@ that lists accepted forms and suggests `okf_search`.
   string `"No catalog entry has path"` no longer appears in src/ or tests/.
 - Scope note: `docs/testing/mock.md` is the user's own manual fixture
   (pre-existing untracked); intentionally excluded from this change.
-- Work-unit commit: (pending)
+- Work-unit commit: 87f953c `fix(catalog): resolve okf_read paths from search
+  display forms and nested folders` (branch feature/okf-read-path-resolution).
