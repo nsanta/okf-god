@@ -28,6 +28,7 @@ import { buildLinkGraph, type LinkGraph } from "./graph.ts";
 import { parseFrontmatter } from "./frontmatter.ts";
 import { readResource } from "./reader.ts";
 import { configExclude, loadConfig, resolveRoots } from "./roots.ts";
+import { resolveCatalogEntry } from "./resolve.ts";
 import { searchEntries } from "./search.ts";
 import { isStale } from "./trust.ts";
 import { buildUsageRows, UsagePopupComponent } from "./usage-popup.ts";
@@ -133,28 +134,10 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
 
   async function resolveEntry(query: { path?: string; name?: string }): Promise<CatalogEntry | string> {
     const state = await ensureCatalog();
-    const trimmedPath = query.path?.trim();
-    const trimmedName = query.name?.trim();
-
-    if (trimmedPath) {
-      const exact = state.entries.find((entry) => entry.path === trimmedPath);
-      if (exact) return exact;
-      if (!trimmedName) {
-        return `No catalog entry has path ${trimmedPath}. Use okf_search first, or pass a resource name.`;
-      }
-    }
-
-    if (trimmedName) {
-      const matches = state.entries.filter((entry) => entry.name === trimmedName);
-      if (matches.length === 1) return matches[0]!;
-      if (matches.length > 1) {
-        const listed = matches.map((entry) => `${entry.kind}:${entry.name} (${entry.path})`).join(", ");
-        return `Name "${trimmedName}" is ambiguous across kinds: ${listed}. Pass an exact path instead.`;
-      }
-      return `No catalog entry named "${trimmedName}". Try okf_search to find resource names.`;
-    }
-
-    return "Provide either a resource path or a resource name.";
+    // resolveCatalogEntry implements the full path ladder (absolute, display
+    // form kind/name, root-relative suffix) plus the historical name fallbacks.
+    const resolved = resolveCatalogEntry(state.entries, query);
+    return "error" in resolved ? resolved.error : resolved;
   }
 
   // --- tools ---------------------------------------------------------------

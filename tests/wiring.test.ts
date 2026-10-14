@@ -19,6 +19,7 @@ function write(relPath: string, content: string): void {
 const CWD = join(FIXTURES, "ws");
 write("skills/deploy/SKILL.md", "---\nname: deploy\ntitle: Deploy Skill\ndescription: Deploys services.\ntags: [ops]\nstatus: stable\n---\nDeploy body. See [runbook](../../docs/runbook.md).\n");
 write("docs/runbook.md", "---\ntype: Playbook\ntitle: Runbook\ndescription: Operational runbook.\ntags: [ops]\nstatus: stable\nverified: { by: human:amy, at: 2026-01-01T00:00:00Z }\n---\nRunbook body.\n");
+write("docs/guides/nested.md", "---\ntype: Guide\ntitle: Nested Guide\ndescription: Nested guide inside a docs subfolder.\ntags: [guide]\n---\nNested body.\n");
 write("agents/reviewer.md", "---\nname: reviewer\ndescription: Reviews changes.\ntags: [quality]\n---\n");
 write(
   ".pi/okf.json",
@@ -122,6 +123,19 @@ describe("okf-god wiring", () => {
     expect(result.content[0].text).toContain(join(CWD, "docs/runbook.md"));
   });
 
+  it("okf_read resolves display forms and section-qualified nested paths", async () => {
+    const { tools } = await setup();
+    // Display form (kind/name as okf_search prints it).
+    const display = await tools.get("okf_read").execute("id", { path: "doc/runbook" }, undefined, undefined, mockCtx());
+    expect(display.details).toMatchObject({ kind: "doc", name: "runbook", path: join(CWD, "docs/runbook.md") });
+    expect(display.content[0].text).toContain("Runbook body.");
+
+    // Section-qualified nested path (kind/ prefix + folder path, no extension).
+    const nested = await tools.get("okf_read").execute("id", { path: "doc/guides/nested" }, undefined, undefined, mockCtx());
+    expect(nested.details).toMatchObject({ kind: "doc", name: "nested", path: join(CWD, "docs/guides/nested.md") });
+    expect(nested.content[0].text).toContain("Nested body.");
+  });
+
   it("okf_read resolves graph links from the lazy graph", async () => {
     const { tools } = await setup();
     // deploy/SKILL.md links ../../docs/runbook.md; runbook has no outgoing links.
@@ -218,8 +232,8 @@ describe("okf-god wiring", () => {
     await commands.get("okf-list")!.handler("", ctx);
     write("docs/fresh.md", "---\ntype: Reference\ndescription: Brand new.\ntags: []\n---\n");
     await commands.get("okf-reload")!.handler("", ctx);
-    // docs at this point: runbook + dangling (okf_links test) + fresh = 3
-    expect(ctx.ui.notify).toHaveBeenCalledWith(expect.stringContaining("3 docs"), "info");
+    // docs at this point: runbook + nested (module fixtures) + dangling (okf_links test) + fresh = 4
+    expect(ctx.ui.notify).toHaveBeenCalledWith(expect.stringContaining("4 docs"), "info");
 
     // Usage state survives: session_start after reload still lists it.
     void handlers;
