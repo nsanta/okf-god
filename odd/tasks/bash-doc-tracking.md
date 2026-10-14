@@ -58,4 +58,10 @@ Usage tracking misses two access paths:
   (denylisted verbs, variable-built paths untracked); pre-existing `-t`
   single-test isolation quirk in wiring.test.ts documented, not introduced
   by this change.
-- Native review (RDD on): (pending)
+- Native review (RDD on): DECLINED for this candidate by explicit user
+  decision (consent relayed losslessly; provider recorded
+  `consent: declined_this_candidate`, no review record created). Provider
+  assessed the candidate HIGH risk (7 files / 419 lines; evidence: "code
+  that starts other processes in src/index.ts" — the bash-wiring change).
+  Future reviews stay enabled; delivery follows ordinary repository policy
+  on the verification evidence above.
