@@ -51,15 +51,17 @@ that lists accepted forms and suggests `okf_search`.
   (pre-existing untracked); intentionally excluded from this change.
 - Work-unit commit: 87f953c `fix(catalog): resolve okf_read paths from search
   display forms and nested folders` (branch feature/okf-read-path-resolution).
-- Native review (RDD on): preflight inspect + START blocked pre-lineage — the
-  provider offers only a pre-lineage `external.select_base_ref` capture slot,
-  which cannot be satisfied because a failed START creates no lineage to bind
-  it to (clean tree, committed-range candidate). ASSESS over
-  aebf7fa..HEAD returned risk `unassessable` (untracked fixture
-  `docs/testing/mock.md` requires explicit declaration) → high-risk plan:
-  writer self-verification + separate independent verifier. Both satisfied:
-  worker ran the suite; `gentle-ai-verify` independently re-ran vitest (88
-  passed), `tsc --noEmit` (clean), and the display-form/nested repro. Native
-  review did NOT close for this candidate — this is a verified work unit,
-  not an approved one. Optional manual native review:
-  `gentle-ai review start --cwd . --base-ref aebf7fac9436a4ece8ccdd5477a35630f2f11a65 --committed-only --untracked-scope exclude`.
+- Native review (RDD on): COMPLETED AND APPROVED. Lineage `review-0296bfcef66a2853`,
+  medium tier, 6 files / 386 lines, lens `review-reliability` (consent granted by
+  the user; managed-assets sync run per the provider stop; facade capture ran
+  the reviewer; store revision sha256:a57b725f). Authority burned via
+  acknowledge-approved (gentle-ai.review-acknowledged/v1). Delivery remains
+  ordinary repository policy.
+- Advisory findings (non-blocking, informational; follow-up work, never a
+  reason to re-run review on this candidate):
+  - R3-display-form-backslash (SUGGESTION, src/resolve.ts:64-70)
+  - R3-suffix-false-positives (WARNING, src/resolve.ts:79-89)
+  - R3-wiring-count-coupling (SUGGESTION, tests/wiring.test.ts:235-236)
+- Untracked-files blocker from the earlier ASSESS round: RESOLVED —
+  docs/testing/mock.md committed as c493804 (test fixture), tree fully clean,
+  so the review candidate covers every change with nothing outside scope.
