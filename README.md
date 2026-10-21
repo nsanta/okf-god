@@ -17,14 +17,17 @@ graph**, tracks which resources the agent actually used, and displays that usage
 ## Install
 
 ```bash
-npm install
+# from GitHub: clone, install dependencies, register with pi
+git clone https://github.com/nsanta/okf-god
+cd okf-god && npm install
+pi install ./okf-god        # or: pi install /absolute/path/to/okf-god
+
+# alternative: link the checkout into your user extensions directory
+ln -s "$PWD/okf-god" ~/.pi/agent/extensions/okf-god
 ```
 
-Then register the extension with pi (user-level, all sessions):
-
-```bash
-pi extension add /path/to/okf_god   # or link into ~/.pi/agent/extensions/
-```
+`npm install` is required — the extension has runtime dependencies (`yaml`, `typebox`).
+For development, load a single file directly with `pi --extension ./src/index.ts`.
 
 The default-export factory (`src/index.ts`) receives `ExtensionAPI`; the factory body does **no**
 filesystem work — the catalog and link graph build lazily on first use or on `session_start`.
