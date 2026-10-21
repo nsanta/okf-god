@@ -17,16 +17,17 @@ graph**, tracks which resources the agent actually used, and displays that usage
 ## Install
 
 ```bash
-# from GitHub: clone, install dependencies, register with pi
+# one-liner: pi clones the repo, installs runtime deps, registers the extension
+pi install https://github.com/nsanta/okf-god
+
+# for development: clone and load in place (your dependency tree, your edits)
 git clone https://github.com/nsanta/okf-god
 cd okf-god && npm install
 pi install ./okf-god        # or: pi install /absolute/path/to/okf-god
-
-# alternative: link the checkout into your user extensions directory
-ln -s "$PWD/okf-god" ~/.pi/agent/extensions/okf-god
 ```
 
-`npm install` is required — the extension has runtime dependencies (`yaml`, `typebox`).
+`@earendil-works/pi-tui`, `typebox`, and the other `@earendil-works/*` packages are
+supplied by the pi host (declared as peer dependencies) — only `yaml` is vendored.
 For development, load a single file directly with `pi --extension ./src/index.ts`.
 
 The default-export factory (`src/index.ts`) receives `ExtensionAPI`; the factory body does **no**

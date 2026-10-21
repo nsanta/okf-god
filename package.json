@@ -1,18 +1,25 @@
 {
   "name": "okf-god",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pi extension: OKF-format skills, docs, and agents catalog with requirement-based lazy loading and usage display.",
   "type": "module",
   "license": "MIT",
+  "keywords": ["pi-package"],
   "main": "src/index.ts",
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "typebox": "^1.0.0",
     "yaml": "^2.6.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "1.2.0",
