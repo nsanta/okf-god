@@ -5,3 +5,6 @@ dist/
 .atl/
 # Benchmark generated results
 bench/results/
+
+# Local pi runtime state
+.pi/
