@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>OKF-HTML v0.1 Profile</title>
+  <meta name="description" content="OKF-HTML v0.1: storing Open Knowledge Format documents as self-contained HTML with okf: meta tags replacing the YAML frontmatter.">
+  <meta name="okf:type" content="doc">
+  <meta name="okf:resource" content="okf-html-profile">
+  <meta name="okf:status" content="stable">
+  <meta name="okf:stale_after" content="2027-05-24">
+  <meta name="okf:generated.at" content="2026-11-24T14:35:00Z">
+  <meta name="okf:tags" content="okf">
+  <meta name="okf:tags" content="format">
+  <meta name="okf:tags" content="okf-god">
+</head>
+<body>
+<main>
+  <h1>OKF-HTML v0.1 Profile</h1>
+
+  <p>This profile defines how <strong>Open Knowledge Format (OKF v0.2)</strong>
+  documents are stored as <strong>self-contained HTML</strong> instead of
+  Markdown. Storage format is selected per document — HTML (default) or
+  Markdown; each document exists in exactly one format, with no mirrors and
+  no sync. Markdown documents remain governed by the existing OKF v0.2
+  markdown spec (YAML frontmatter); this profile covers the HTML side. The
+  okf-god catalog indexes both formats as first-class entries.</p>
+
+  <p>This document is the format contract. It is authored in OKF-HTML itself
+  and doubles as the reference fixture for the okf-god parser tests.</p>
+
+  <h2>Document skeleton</h2>
+  <pre>&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;title&gt;Architecture&lt;/title&gt;                     &lt;!-- maps to `title` --&gt;
+  &lt;meta name="okf:type" content="doc"&gt;            &lt;!-- §4.1 fields --&gt;
+  &lt;meta name="okf:resource" content="okf-html"&gt;
+  &lt;meta name="okf:status" content="stable"&gt;
+  &lt;meta name="okf:stale_after" content="2027-01-01"&gt;
+  &lt;meta name="okf:generated.at" content="2026-11-24T10:00:00Z"&gt; &lt;!-- dotted keys --&gt;
+  &lt;meta name="okf:tags" content="format"&gt;         &lt;!-- lists: repeat the tag --&gt;
+  &lt;meta name="okf:tags" content="okf-god"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;!-- semantic HTML body --&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+
+  <h2>Rules</h2>
+  <ol>
+    <li><strong>Scalars</strong>: one <code>&lt;meta name="okf:&lt;field&gt;"
+      content="&lt;value&gt;"&gt;</code> per field. Dotted YAML keys map 1:1
+      to dotted meta names (<code>generated.at</code> →
+      <code>okf:generated.at</code>).</li>
+    <li><strong>Lists</strong> (<code>tags</code>, <code>sources</code>):
+      repeat the same meta name; order = document order.</li>
+    <li><strong>Title</strong>: the <code>&lt;title&gt;</code> element maps to
+      the <code>title</code> field; no <code>okf:title</code> meta is needed.
+      <code>name="description"</code> (plain HTML) is accepted as a fallback
+      alias for the <code>description</code> field;
+      <code>okf:description</code> wins when both exist.</li>
+    <li><strong>Permissive (§11)</strong>: unknown <code>okf:*</code> fields
+      are tolerated; zero <code>okf:</code> metas is a valid permissive
+      document (entry indexes with name only). The parser never throws and
+      never rejects a document.</li>
+    <li><strong>Reserved filenames</strong>: <code>index.html</code> and
+      <code>log.html</code> are not cataloged (mirrors §3.1
+      <code>index.md</code>/<code>log.md</code>).</li>
+    <li><strong>Links (§6)</strong>: <code>&lt;a href="pi.html"&gt;</code> and
+      extension-less bundle-relative <code>/pi</code> are concept links.
+      Extension-less targets are format-agnostic: resolved against the
+      entry's root, then same-kind roots, trying <code>.html</code> first
+      (default), then <code>.md</code>. Exact relative paths
+      (<code>../PLAN.md</code>) resolve against the source file's directory.
+      <code>http(s):</code>, <code>mailto:</code>, <code>#anchor</code> are
+      ignored. Broken links are tolerated and kept, never rejected.</li>
+    <li><strong>Mixed bundles</strong>: <code>.md</code> and <code>.html</code>
+      coexist in one catalog; format is selected per document, defaulting to
+      HTML for new docs.</li>
+    <li><strong>Names</strong>: doc slug = filename minus extension
+      (<code>pi.html</code> → <code>pi</code>); skill and agent naming rules
+      are unchanged (they stay Markdown).</li>
+    <li><strong>Slug collisions</strong>: <code>pi.md</code> and
+      <code>pi.html</code> in the same root both index (distinct paths).
+      Name-based lookup prefers the <code>.html</code> entry (default
+      format); exact-path lookup is unambiguous.</li>
+  </ol>
+
+  <h2>Link authoring guidance</h2>
+  <p>In HTML documents, prefer <strong>extension-bearing relative
+  hrefs</strong> (<code>pi.html</code>, <code>../docs/pi.html</code>): they
+  stay clickable when the file is opened in a browser under
+  <code>file://</code>, and the okf-god graph resolves them. The
+  extension-less <code>/name</code> form is supported for graph parity with
+  Markdown's <code>/x.md</code> convention, but renders unclickable in
+  browsers, so treat it as a fallback, not the house style.</p>
+
+  <h2>Status</h2>
+  <p>v0.1, 2026-11-24. Owner: okf-god. Changes to these rules must update
+  this document and the parser tests together.</p>
+</main>
+</body>
+</html>

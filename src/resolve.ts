@@ -19,7 +19,9 @@
  * `kind:name (path)`, one per line. If the path matches nothing, a present
  * `name` falls through to name handling, which keeps the historical
  * semantics: unique exact name → entry, multiple → ambiguity error across
- * kinds, none → not-found error.
+ * kinds, none → not-found error. OKF-HTML v0.1 rule 9 refines both
+ * name-based rungs: when duplicates differ only by format, the `.html`
+ * entry (default format) wins; exact-path lookup stays unambiguous.
  */
 import { type CatalogEntry, type CatalogKind, CATALOG_KINDS } from "./catalog.ts";
 
@@ -59,14 +61,17 @@ function normalizePathQuery(raw: string): string {
 const matchAbsolutePath: PathMatcher = (entries, raw) =>
   entries.filter((entry) => entry.path === raw);
 
-// Level 2: display form `kind/name`; `kind:name` is unique by scan dedupe.
+// Level 2: display form `kind/name`; `kind:name` is unique by scan dedupe
+// except for an .md/.html slug collision, where the .html entry wins.
 const matchDisplayForm: PathMatcher = (entries, raw) => {
   const slash = raw.indexOf("/");
   if (slash <= 0) return [];
   const kind = raw.slice(0, slash);
   if (!isCatalogKind(kind)) return [];
   const name = raw.slice(slash + 1);
-  return entries.filter((entry) => entry.kind === kind && entry.name === name);
+  const matches = entries.filter((entry) => entry.kind === kind && entry.name === name);
+  const winner = preferHtml(matches);
+  return winner ? [winner] : matches;
 };
 
 // Level 3: root-relative suffix match, normalized on both sides.
@@ -83,6 +88,17 @@ const PATH_LADDER: readonly PathMatcher[] = [matchAbsolutePath, matchDisplayForm
 
 function listCandidates(matches: CatalogEntry[]): string {
   return matches.map((entry) => `${entry.kind}:${entry.name} (${entry.path})`).join("\n");
+}
+
+/**
+ * OKF-HTML rule 9: among entries sharing a name, name-based lookup prefers
+ * the .html entry (default format). Returns the winner, or undefined when
+ * the match set stays genuinely ambiguous (e.g. two .html roots).
+ */
+function preferHtml(matches: CatalogEntry[]): CatalogEntry | undefined {
+  const htmlMatches = matches.filter((entry) => entry.path.toLowerCase().endsWith(".html"));
+  const candidates = htmlMatches.length > 0 ? htmlMatches : matches;
+  return candidates.length === 1 ? candidates[0] : undefined;
 }
 
 /**
@@ -119,6 +135,10 @@ export function resolveCatalogEntry(entries: CatalogEntry[], query: ResolveQuery
     const matches = entries.filter((entry) => entry.name === trimmedName);
     if (matches.length === 1) return matches[0];
     if (matches.length > 1) {
+      // An .md/.html slug collision resolves to the .html entry (rule 9);
+      // anything else is a real ambiguity.
+      const winner = preferHtml(matches);
+      if (winner) return winner;
       return {
         error: `Name "${trimmedName}" is ambiguous across kinds:\n${listCandidates(matches)}\nPass an exact path instead.`,
       };

@@ -31,8 +31,11 @@ const WEIGHTS = {
  * Per query token:
  * - tags: exact token match, ×3
  * - name: exact token match, ×2.5
- * - title / description / section: token prefix match, ×2 / ×1 / ×1
+ * - title / description / section / headings: token prefix match, ×2 / ×1 / ×1 / ×1
  * A token matching several fields sums.
+ *
+ * `headings` (OKF-HTML v0.1) carries h1–h6 text for `.html` entries; markdown
+ * entries have none and score identically to before.
  *
  * Exact-word hits in prose fields are credited only when no identity field
  * (tags/name) already claimed that token for the entry — identity fields own
@@ -74,6 +77,7 @@ function scoreEntry(entry: CatalogEntry, tokens: string[]): number {
     let titleHit = matchesTokenText(entry.title, token, "prefix");
     let descHit = matchesTokenText(entry.description, token, "prefix");
     let sectionHit = matchesTokenText(entry.section, token, "prefix");
+    let headingHit = matchesTokenListPrefix(entry.headings, token);
 
     // Suppress exact-word prose hits when an identity field already claimed
     // the token (see doc comment).
@@ -82,6 +86,7 @@ function scoreEntry(entry: CatalogEntry, tokens: string[]): number {
       if (titleHit && !hasPartialToken(entry.title, token)) titleHit = false;
       if (descHit && !hasPartialToken(entry.description, token)) descHit = false;
       if (sectionHit && !hasPartialToken(entry.section, token)) sectionHit = false;
+      if (headingHit && !listHasPartialToken(entry.headings, token)) headingHit = false;
     }
 
     if (tagHit) score += WEIGHTS.tags;
@@ -89,6 +94,7 @@ function scoreEntry(entry: CatalogEntry, tokens: string[]): number {
     if (titleHit) score += WEIGHTS.title;
     if (descHit) score += WEIGHTS.description;
     if (sectionHit) score += WEIGHTS.section;
+    if (headingHit) score += WEIGHTS.section;
   }
   return score;
 }
@@ -109,6 +115,18 @@ function tokensOf(text: string | undefined): string[] {
 function matchesTokenList(values: string[] | undefined, token: string): boolean {
   if (!values) return false;
   return values.some((value) => tokensOf(value).includes(token));
+}
+
+/** Prefix variant of `matchesTokenList` for heading terms (OKF-HTML). */
+function matchesTokenListPrefix(values: string[] | undefined, token: string): boolean {
+  if (!values) return false;
+  return values.some((value) => tokensOf(value).some((candidate) => candidate.startsWith(token)));
+}
+
+/** `hasPartialToken` across a list of heading texts. */
+function listHasPartialToken(values: string[] | undefined, token: string): boolean {
+  if (!values) return false;
+  return values.some((value) => hasPartialToken(value, token));
 }
 
 function matchesTokenText(

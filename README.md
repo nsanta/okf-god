@@ -42,7 +42,13 @@ filesystem work — the catalog and link graph build lazily on first use or on `
 | agent  | `<cwd>/.pi/agents`, `~/.pi/agent/agents`, `~/.agents`                                | frontmatter `name`, else filename   |
 
 Skipped everywhere: `node_modules/`, `99-archive/`, hidden directories, and the reserved OKF
-filenames `index.md` / `log.md` (§3.1).
+filenames `index.md` / `log.md` / `index.html` / `log.html` (§3.1).
+
+**OKF-HTML v0.1**: `.html` documents are indexed alongside `.md` in every root per the
+[OKF-HTML v0.1 profile](docs/okf-html.html) — `<title>` plus `okf:` metas supply the metadata,
+doc slugs are the filename minus extension, an `.md`/`.html` slug collision keeps both entries
+(name-based lookup prefers the `.html` one; exact paths are unambiguous), and skills stay
+Markdown (`SKILL.md`).
 
 Override roots per project or user with `.pi/okf.json` (cwd) or `~/.pi/agent/okf.json`:
 
@@ -97,7 +103,8 @@ naming a cataloged agent). Detection is defensive: unknown event shapes never th
 | §5.2–5.3 trust tiers              | `src/trust.ts` — `deriveTrustTier` (bare `verified` mapping normalized per §5.2) |
 | §5.4–5.5 status & staleness       | `normalizeStatus` (absent ⇒ `stable`), `isStale` (`now >= stale_after`) |
 | §6 cross-linking / graph          | `src/graph.ts` — extraction, `/abs` + relative resolution, broken links tolerated |
-| §3.1 reserved filenames           | `index.md` / `log.md` skipped at scan                                |
+| §3.1 reserved filenames           | `index.md` / `log.md` / `index.html` / `log.html` skipped at scan    |
+| OKF-HTML v0.1 profile             | `src/htmlmeta.ts` (never-throw parser); `.html` scanning in `src/catalog.ts` (incl. `headings`); anchor-link graph + format-agnostic `/name` resolution in `src/graph.ts`; readable-text `okf_read` in `src/reader.ts`; heading search terms in `src/search.ts` ([docs/okf-html.html](docs/okf-html.html)) |
 | §11 permissive conformance        | no document is ever rejected; unknown keys/types ignored             |
 
 `sources` (§5.1) are not retained in the catalog (size); `okf_read` summarizes their count.

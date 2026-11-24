@@ -1,15 +1,24 @@
 import { readFile, stat } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { CatalogEntry, CatalogKind, CatalogRoots } from "./catalog.ts";
+import { isHtmlPath } from "./htmlmeta.ts";
 
 /**
  * OKF §6 link graph. Links are standard markdown links; `/x.md` targets are
  * bundle-relative (tried against the entry's root, then each root of the
  * entry's kind), other targets are resolved against the source file's
  * directory. Broken links are tolerated and kept (§6.1), never rejected.
+ *
+ * OKF-HTML v0.1 (docs/okf-html.html rule 6): `.html` sources contribute
+ * `<a href>` concept links instead — relative `.html`/`.md` targets resolve
+ * against the source directory, extension-less `/name` targets are
+ * bundle-relative and format-agnostic (probing `.html` first, then `.md`).
  */
 
 const MARKDOWN_LINK = /\[[^\]\n]*\]\(\s*([^)\s]+)(?:\s+"[^"]*")?\s*\)/g;
+
+/** `<a href>` only — never `<link>`/`<meta>`, any quote style, any attr order. */
+const HTML_ANCHOR = /<a\b[^>]*?\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/gi;
 
 /** Extract markdown link targets from a body: `.md` targets only, deduped, first-seen order. */
 export function extractLinks(body: string): string[] {
@@ -30,6 +39,37 @@ function isConceptLink(target: string): boolean {
   if (/^[a-z][a-z0-9+.-]*:/i.test(target)) return false; // http:, https:, mailto:, …
   if (target.startsWith("#")) return false; // pure in-page anchor
   return true;
+}
+
+/**
+ * Extract concept link targets from an OKF-HTML body: `<a href>` targets
+ * only (`<link>`/`<meta>` are ignored), deduped, first-seen order. A concept
+ * target ends `.html`/`.md` (relative or `/bundle` path) or is an
+ * extension-less `/name` bundle-relative target (rule 6). Schemes and pure
+ * in-page anchors are skipped; fragments are kept and stripped at resolution.
+ */
+export function extractHtmlLinks(body: string): string[] {
+  const seen = new Set<string>();
+  const links: string[] = [];
+  for (const match of body.matchAll(HTML_ANCHOR)) {
+    const target = (match[1] ?? match[2] ?? match[3] ?? "").trim();
+    if (!target || !isHtmlConceptLink(target)) continue;
+    if (seen.has(target)) continue;
+    seen.add(target);
+    links.push(target);
+  }
+  return links;
+}
+
+function isHtmlConceptLink(target: string): boolean {
+  if (/^[a-z][a-z0-9+.-]*:/i.test(target)) return false; // http:, https:, mailto:, …
+  if (target.startsWith("#")) return false; // pure in-page anchor
+  const path = target.split("#")[0];
+  if (/\.(html|md)$/i.test(path)) return true;
+  // Extension-less targets are bundle-relative only when /-rooted (rule 6).
+  if (!path.startsWith("/")) return false;
+  const lastSegment = path.slice(path.lastIndexOf("/") + 1);
+  return !lastSegment.includes(".");
 }
 
 /** One directed link from a source document to its (resolved or broken) target. */
@@ -144,7 +184,7 @@ export class LinkGraph {
     } catch {
       body = "";
     }
-    const targets = extractLinks(body);
+    const targets = isHtmlPath(entry.path) ? extractHtmlLinks(body) : extractLinks(body);
     this.fingerprints.set(entry.path, fingerprint);
     this.linkCache.set(entry.path, targets);
     return targets;
@@ -177,7 +217,21 @@ export class LinkGraph {
         if (!candidates.includes(root)) candidates.push(root);
       }
       if (candidates.length === 0) return undefined;
-      const attempts = candidates.map((root) => join(root, decoded.replace(/^\//, "")));
+
+      const lastSegment = decoded.slice(decoded.lastIndexOf("/") + 1);
+      const attempts: string[] = [];
+      if (!lastSegment.includes(".")) {
+        // OKF-HTML rule 6: extension-less bundle targets are format-agnostic;
+        // per candidate root, probe .html first, then .md.
+        const bare = decoded.replace(/^\//, "");
+        for (const root of candidates) {
+          attempts.push(join(root, `${bare}.html`), join(root, `${bare}.md`));
+        }
+      } else {
+        for (const root of candidates) {
+          attempts.push(join(root, decoded.replace(/^\//, "")));
+        }
+      }
       for (const attempt of attempts) {
         if (this.nodesByPath.has(attempt)) return attempt;
       }

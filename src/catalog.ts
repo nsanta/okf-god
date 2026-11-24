@@ -1,6 +1,7 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 import { parseFrontmatter } from "./frontmatter.ts";
+import { extractHtmlHeadings, isHtmlPath, parseHtmlMeta } from "./htmlmeta.ts";
 import { deriveTrustTier, isStale, normalizeStatus } from "./trust.ts";
 
 /** Catalog resource kinds. */
@@ -33,15 +34,17 @@ export interface CatalogEntry {
   generatedAt?: string;
   /** OKF §5.3 trust tier derived from `verified`. */
   trustTier?: TrustTier;
+  /** OKF-HTML only: h1–h6 text in document order (duplicates kept); markdown entries are undefined. */
+  headings?: string[];
   /** Root the entry was scanned from (used for bundle-relative link resolution). */
   root?: string;
 }
 
 export type TrustTier = "unverified" | "machine-confirmed" | "human-reviewed";
 
-/** Path segments never scanned, plus OKF §3.1 reserved filenames. */
+/** Path segments never scanned, plus OKF §3.1 / OKF-HTML rule 5 reserved filenames. */
 export const EXCLUDED_SEGMENTS = new Set(["node_modules", "99-archive"]);
-export const RESERVED_FILENAMES = new Set(["index.md", "log.md"]);
+export const RESERVED_FILENAMES = new Set(["index.md", "log.md", "index.html", "log.html"]);
 
 export interface CatalogCacheStat {
   mtimeMs: number;
@@ -90,7 +93,10 @@ export async function scanCatalog(
   opts: ScanOptions = {},
 ): Promise<CatalogEntry[]> {
   const entries: CatalogEntry[] = [];
-  const seen = new Set<string>(); // `${kind}:${name}` — first wins
+  // `${kind}:${name}:${format}` — same-name duplicates across roots dedupe per
+  // format, while a slug collision across extensions (pi.md + pi.html) keeps
+  // both entries (OKF-HTML rule 9).
+  const seen = new Set<string>();
 
   for (const kind of CATALOG_KINDS) {
     for (const root of roots[kind] ?? []) {
@@ -98,7 +104,7 @@ export async function scanCatalog(
       for (const file of files) {
         const entry = await indexFile(kind, root, file, opts.cache);
         if (!entry) continue;
-        const key = `${entry.kind}:${entry.name}`;
+        const key = `${entry.kind}:${entry.name}:${isHtmlPath(entry.path) ? "html" : "md"}`;
         if (seen.has(key)) continue;
         seen.add(key);
         entries.push(entry);
@@ -146,9 +152,10 @@ async function walk(
       continue;
     }
     if (!dirent.isFile()) continue;
-    if (!dirent.name.toLowerCase().endsWith(".md")) continue;
-    if (RESERVED_FILENAMES.has(dirent.name)) continue; // OKF §3.1 navigational files
-    if (kind === "skill" && dirent.name !== SKILL_FILE) continue;
+    // OKF-HTML v0.1: .html documents index alongside .md (rules 5, 7, 8).
+    if (!dirent.name.toLowerCase().endsWith(".md") && !isHtmlPath(dirent.name)) continue;
+    if (RESERVED_FILENAMES.has(dirent.name)) continue; // §3.1 / rule 5 navigational files
+    if (kind === "skill" && dirent.name !== SKILL_FILE) continue; // skills stay Markdown (rule 8)
     out.push(full);
   }
 }
@@ -179,12 +186,15 @@ async function indexFile(
     return undefined;
   }
 
-  const parsed = parseFrontmatter(raw);
+  const parsed = isHtmlPath(path) ? parseHtmlMeta(raw) : parseFrontmatter(raw);
   const data = parsed.ok ? parsed.data : {};
   const relToRoot = relative(root, path);
   const section = parentSection(relToRoot);
 
   const entry = buildEntry(kind, path, root, section, data);
+  if (isHtmlPath(path)) {
+    entry.headings = extractHtmlHeadings(parsed.ok ? parsed.body : "");
+  }
   cache?.set(path, currentStat, entry);
   return entry;
 }
@@ -197,10 +207,14 @@ export function buildEntry(
   data: Record<string, unknown>,
 ): CatalogEntry {
   const fileName = path.split(sep).pop() ?? path;
-  const baseName = fileName.replace(/\.md$/i, "");
+  const baseName = fileName.replace(/\.(md|html)$/i, "");
 
   let name: string;
-  if (kind === "skill") {
+  if (isHtmlPath(fileName)) {
+    // OKF-HTML rule 8: html entries are named by the filename slug unless an
+    // explicit okf:name meta exists.
+    name = readString(data["name"]) ?? baseName;
+  } else if (kind === "skill") {
     // skill: frontmatter `name`, else the directory name (degenerate
     // root-level SKILL.md: the root's basename).
     const fmName = readString(data["name"]);
@@ -217,6 +231,12 @@ export function buildEntry(
   }
 
   const generated = readMap(data["generated"]);
+  // Markdown nests `generated: { at: ... }`; OKF-HTML stores the dotted key
+  // as a meta name (`okf:generated.at`, rule 1). Each format reads its own
+  // spelling; the other stays untouched.
+  const generatedAt = isHtmlPath(fileName)
+    ? (readString(data["generated.at"]) ?? readString(generated?.["at"]))
+    : readString(generated?.["at"]);
   return {
     kind,
     name,
@@ -229,7 +249,7 @@ export function buildEntry(
     okfType: readString(data["type"]),
     resource: readString(data["resource"]),
     staleAfter: readString(data["stale_after"]),
-    generatedAt: readString(generated?.["at"]),
+    generatedAt,
     trustTier: deriveTrustTier(data["verified"]),
     root,
   };
