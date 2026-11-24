@@ -47,7 +47,9 @@ describe("generateFixture", () => {
     expect(entries).toHaveLength(31); // 30 concepts + reserved index.md
     expect(entries.filter((name) => name.endsWith(".md")).length).toBe(31);
     expect(entries).toContain("index.md");
-    expect(entries.filter((name) => name !== "index.md").every((name) => name.endsWith(".md"))).toBe(true);
+    expect(
+      entries.filter((name) => name !== "index.md").every((name) => name.endsWith(".md")),
+    ).toBe(true);
     // Slugs are unique and index.md is never a concept file.
     expect(new Set(spec.concepts.map((c) => c.slug)).size).toBe(30);
     expect(spec.concepts.map((c) => `${c.slug}.md`)).not.toContain("index.md");
@@ -74,7 +76,9 @@ describe("generateFixture", () => {
 
     const otherSeed = generateFixture({ size: "S", seed: 43, dir: freshDir() });
     const aEntries = [...snapshot(a.dir).entries()].sort(([x], [y]) => x.localeCompare(y));
-    const otherEntries = [...snapshot(otherSeed.dir).entries()].sort(([x], [y]) => x.localeCompare(y));
+    const otherEntries = [...snapshot(otherSeed.dir).entries()].sort(([x], [y]) =>
+      x.localeCompare(y),
+    );
     expect(otherEntries).toHaveLength(aEntries.length); // same tree shape
     expect(aEntries).not.toEqual(otherEntries); // but different seeded content
   });

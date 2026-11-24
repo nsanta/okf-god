@@ -66,7 +66,9 @@ describe("extractCatalogPaths", () => {
   it("strips leading env assignments before checking the first verb", () => {
     expect(paths("FOO=1 cat docs/runbook.md")).toEqual(["/ws/docs/runbook.md"]);
     expect(paths("FOO=1 BAR=2 rm docs/runbook.md")).toEqual([]);
-    expect(paths("FOO=1 cat docs/runbook.md BAR=2 docs/agents/reviewer.md")).toEqual(["/ws/docs/runbook.md"]);
+    expect(paths("FOO=1 cat docs/runbook.md BAR=2 docs/agents/reviewer.md")).toEqual([
+      "/ws/docs/runbook.md",
+    ]);
   });
 
   it("splits on shell operators and newlines", () => {
@@ -91,8 +93,8 @@ describe("extractCatalogPaths", () => {
     const catalog = [entry("doc", "readme", "/ws/README")];
     // Bare word without slash or .md suffix is ignored even on an exact match.
     expect(extractCatalogPaths("cat README", catalog, resolveIdentity)).toEqual([]);
-    expect(extractCatalogPaths("cat /ws/README", catalog, resolveIdentity).map((e) => e.path)).toEqual([
-      "/ws/README",
-    ]);
+    expect(
+      extractCatalogPaths("cat /ws/README", catalog, resolveIdentity).map((e) => e.path),
+    ).toEqual(["/ws/README"]);
   });
 });

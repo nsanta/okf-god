@@ -81,7 +81,9 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
 
   function ensureGraph(): Promise<LinkGraph> {
     if (!graphPromise) {
-      const graph = ensureCatalog().then((state) => buildLinkGraph(state.entries, { roots: state.roots }));
+      const graph = ensureCatalog().then((state) =>
+        buildLinkGraph(state.entries, { roots: state.roots }),
+      );
       graphPromise = graph.catch((error) => {
         graphPromise = null;
         throw error;
@@ -120,7 +122,9 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
       if (counts.skill > 0) parts.push(`${counts.skill} skill${counts.skill === 1 ? "" : "s"}`);
       if (counts.doc > 0) parts.push(`${counts.doc} doc${counts.doc === 1 ? "" : "s"}`);
       if (counts.agent > 0) parts.push(`${counts.agent} agent${counts.agent === 1 ? "" : "s"}`);
-      ctx.ui.setWidget(WIDGET_ID, [`OKF ▸ ${parts.join(" · ")} (this session)`], { placement: "belowEditor" });
+      ctx.ui.setWidget(WIDGET_ID, [`OKF ▸ ${parts.join(" · ")} (this session)`], {
+        placement: "belowEditor",
+      });
     } catch {
       // widget failures must never crash the session
     }
@@ -137,7 +141,10 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
 
   // --- resolution helpers -------------------------------------------------
 
-  async function resolveEntry(query: { path?: string; name?: string }): Promise<CatalogEntry | string> {
+  async function resolveEntry(query: {
+    path?: string;
+    name?: string;
+  }): Promise<CatalogEntry | string> {
     const state = await ensureCatalog();
     // resolveCatalogEntry implements the full path ladder (absolute, display
     // form kind/name, root-relative suffix) plus the historical name fallbacks.
@@ -190,16 +197,25 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
           return textResult(`No OKF resources match "${params.query}".`, { results: [] });
         }
         const lines = matches.map((match, index) => {
-          const desc = match.entry.description ? ` — ${truncate(match.entry.description, 100)}` : "";
+          const desc = match.entry.description
+            ? ` — ${truncate(match.entry.description, 100)}`
+            : "";
           return `${index + 1}. ${describeEntry(match.entry)} · score ${match.score.toFixed(1)}${desc}`;
         });
         const header = `OKF search "${params.query}"${params.kind ? ` (${params.kind}s only)` : ""} — ${matches.length} match${matches.length === 1 ? "" : "es"}:`;
         return textResult([header, ...lines].join("\n"), {
-          results: matches.map((match) => ({ kind: match.entry.kind, name: match.entry.name, path: match.entry.path })),
+          results: matches.map((match) => ({
+            kind: match.entry.kind,
+            name: match.entry.name,
+            path: match.entry.path,
+          })),
         });
       } catch (error) {
         warn(ctx, error);
-        return textResult(`okf_search failed: ${error instanceof Error ? error.message : String(error)}`, { results: [] });
+        return textResult(
+          `okf_search failed: ${error instanceof Error ? error.message : String(error)}`,
+          { results: [] },
+        );
       }
     },
   });
@@ -213,9 +229,15 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
       "graph neighborhood so you can navigate to related resources.",
     promptSnippet: "Load an OKF resource with trust/lifecycle signals and related links",
     parameters: Type.Object({
-      path: Type.Optional(Type.String({ description: "Exact resource file path (from okf_search)" })),
-      name: Type.Optional(Type.String({ description: "Unique resource name (alternative to path)" })),
-      maxChars: Type.Optional(Type.Number({ description: "Maximum characters of body content to return" })),
+      path: Type.Optional(
+        Type.String({ description: "Exact resource file path (from okf_search)" }),
+      ),
+      name: Type.Optional(
+        Type.String({ description: "Unique resource name (alternative to path)" }),
+      ),
+      maxChars: Type.Optional(
+        Type.Number({ description: "Maximum characters of body content to return" }),
+      ),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       try {
@@ -231,7 +253,13 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
         ]);
 
         recordUsage(
-          { kind: entry.kind, name: entry.name, path: entry.path, source: "okf_read", ts: Date.now() },
+          {
+            kind: entry.kind,
+            name: entry.name,
+            path: entry.path,
+            source: "okf_read",
+            ts: Date.now(),
+          },
           ctx,
         );
 
@@ -260,10 +288,18 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
           lines.push(linksSection(entry, graph));
         }
         lines.push("", read.text);
-        return textResult(lines.join("\n"), { kind: entry.kind, name: entry.name, path: entry.path, truncated: read.truncated });
+        return textResult(lines.join("\n"), {
+          kind: entry.kind,
+          name: entry.name,
+          path: entry.path,
+          truncated: read.truncated,
+        });
       } catch (error) {
         warn(ctx, error);
-        return textResult(`okf_read failed: ${error instanceof Error ? error.message : String(error)}`, { error: String(error) });
+        return textResult(
+          `okf_read failed: ${error instanceof Error ? error.message : String(error)}`,
+          { error: String(error) },
+        );
       }
     },
   });
@@ -279,13 +315,17 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
     parts.push(
       outgoingNames.length > 0
         ? `→ ${outgoingNames.slice(0, LINK_NAME_CAP).join(", ")}` +
-            (outgoingNames.length > LINK_NAME_CAP ? ` (+${outgoingNames.length - LINK_NAME_CAP} more)` : "")
+            (outgoingNames.length > LINK_NAME_CAP
+              ? ` (+${outgoingNames.length - LINK_NAME_CAP} more)`
+              : "")
         : `→ none (${outgoing.length} raw links)`,
     );
     parts.push(
       backlinkNames.length > 0
         ? `← ${backlinkNames.slice(0, LINK_NAME_CAP).join(", ")}` +
-            (backlinkNames.length > LINK_NAME_CAP ? ` (+${backlinkNames.length - LINK_NAME_CAP} more)` : "")
+            (backlinkNames.length > LINK_NAME_CAP
+              ? ` (+${backlinkNames.length - LINK_NAME_CAP} more)`
+              : "")
         : "← none",
     );
     return `Links: ${parts.join(" | ")}`;
@@ -300,7 +340,9 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
     promptSnippet: "Navigate the OKF link graph around a resource",
     parameters: Type.Object({
       path: Type.Optional(Type.String({ description: "Exact resource file path" })),
-      name: Type.Optional(Type.String({ description: "Unique resource name (alternative to path)" })),
+      name: Type.Optional(
+        Type.String({ description: "Unique resource name (alternative to path)" }),
+      ),
       direction: Type.Optional(
         Type.Union([Type.Literal("out"), Type.Literal("back"), Type.Literal("both")], {
           description: "Which links to list (default: both)",
@@ -343,10 +385,18 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
           }
         }
         if (total === 0) lines.push("(no links in this direction)");
-        return textResult(lines.join("\n"), { kind: entry.kind, name: entry.name, path: entry.path, links: total });
+        return textResult(lines.join("\n"), {
+          kind: entry.kind,
+          name: entry.name,
+          path: entry.path,
+          links: total,
+        });
       } catch (error) {
         warn(ctx, error);
-        return textResult(`okf_links failed: ${error instanceof Error ? error.message : String(error)}`, { error: String(error) });
+        return textResult(
+          `okf_links failed: ${error instanceof Error ? error.message : String(error)}`,
+          { error: String(error) },
+        );
       }
     },
   });
@@ -354,7 +404,8 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
   pi.registerTool({
     name: "okf_list",
     label: "OKF List",
-    description: "List cataloged OKF resources (optionally one kind) as a compact table with status.",
+    description:
+      "List cataloged OKF resources (optionally one kind) as a compact table with status.",
     promptSnippet: "List available OKF skills, docs, and agents",
     parameters: Type.Object({
       kind: Type.Optional(kindSchema),
@@ -362,7 +413,9 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       try {
         const state = await ensureCatalog();
-        const entries = params.kind ? state.entries.filter((entry) => entry.kind === params.kind) : state.entries;
+        const entries = params.kind
+          ? state.entries.filter((entry) => entry.kind === params.kind)
+          : state.entries;
         if (entries.length === 0) {
           return textResult("The OKF catalog is empty for this selection.", { count: 0 });
         }
@@ -372,15 +425,23 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
         });
         if (entries.length > 50) lines.push(`… and ${entries.length - 50} more`);
         return textResult(
-          [`OKF catalog — ${entries.length} resource${entries.length === 1 ? "" : "s"}:`, ...lines].join("\n"),
+          [
+            `OKF catalog — ${entries.length} resource${entries.length === 1 ? "" : "s"}:`,
+            ...lines,
+          ].join("\n"),
           {
             count: entries.length,
-            entries: entries.slice(0, 50).map((entry) => ({ kind: entry.kind, name: entry.name, path: entry.path })),
+            entries: entries
+              .slice(0, 50)
+              .map((entry) => ({ kind: entry.kind, name: entry.name, path: entry.path })),
           },
         );
       } catch (error) {
         warn(ctx, error);
-        return textResult(`okf_list failed: ${error instanceof Error ? error.message : String(error)}`, { error: String(error) });
+        return textResult(
+          `okf_list failed: ${error instanceof Error ? error.message : String(error)}`,
+          { error: String(error) },
+        );
       }
     },
   });
@@ -439,7 +500,11 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
         }
         const entry = matches[0]!;
         const graph = await ensureGraph();
-        const out = graph.outgoing(entry.path).map((edge) => edge.entry ? `→ ${edge.entry.kind}/${edge.entry.name}` : `→ (broken) ${edge.rawTarget}`);
+        const out = graph
+          .outgoing(entry.path)
+          .map((edge) =>
+            edge.entry ? `→ ${edge.entry.kind}/${edge.entry.name}` : `→ (broken) ${edge.rawTarget}`,
+          );
         const back = graph.backlinks(entry.path).map((edge) => {
           const source = graph.entryAt(edge.sourcePath);
           return source ? `← ${source.kind}/${source.name}` : `← (unknown) ${edge.sourcePath}`;
@@ -453,7 +518,8 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
   });
 
   pi.registerCommand("okf-graph", {
-    description: "Render the OKF link graph in a scrollable overlay (--mermaid exports Mermaid text)",
+    description:
+      "Render the OKF link graph in a scrollable overlay (--mermaid exports Mermaid text)",
     handler: async (args, ctx) => {
       try {
         const graph = await ensureGraph();
@@ -468,10 +534,13 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
           ctx.ui.notify(boundText(result.lines.join("\n")), "info");
           return;
         }
-        await ctx.ui.custom<void>((_tui, theme, _kb, done) => new GraphPopupComponent(result, theme, done), {
-          overlay: true,
-          overlayOptions: { anchor: "center", width: 72, maxHeight: 20 },
-        });
+        await ctx.ui.custom<void>(
+          (_tui, theme, _kb, done) => new GraphPopupComponent(result, theme, done),
+          {
+            overlay: true,
+            overlayOptions: { anchor: "center", width: 72, maxHeight: 20 },
+          },
+        );
       } catch (error) {
         warn(ctx, error);
       }
@@ -511,10 +580,13 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
           return;
         }
         const rows = buildUsageRows(events, { cwd, titleFor: (event) => titles.get(event.path) });
-        await ctx.ui.custom<void>((_tui, theme, _kb, done) => new UsagePopupComponent(rows, theme, done), {
-          overlay: true,
-          overlayOptions: { anchor: "center", width: 72, maxHeight: 20 },
-        });
+        await ctx.ui.custom<void>(
+          (_tui, theme, _kb, done) => new UsagePopupComponent(rows, theme, done),
+          {
+            overlay: true,
+            overlayOptions: { anchor: "center", width: 72, maxHeight: 20 },
+          },
+        );
       } catch (error) {
         warn(ctx, error);
       }
@@ -575,7 +647,8 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
           try {
             const state = await ensureCatalog();
             const match = state.entries.find(
-              (entry) => entry.kind === "agent" && (entry.name === agentName || entry.path === agentName),
+              (entry) =>
+                entry.kind === "agent" && (entry.name === agentName || entry.path === agentName),
             );
             recordUsage(
               {
@@ -589,14 +662,20 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
             );
           } catch {
             // catalog unavailable: record without resolution
-            recordUsage({ kind: "agent", name: agentName, path: "", source: "agent_spawn", ts: Date.now() }, ctx);
+            recordUsage(
+              { kind: "agent", name: agentName, path: "", source: "agent_spawn", ts: Date.now() },
+              ctx,
+            );
           }
         }
       }
 
       // Read-shaped tools reading a cataloged skill, doc, or agent file. Awaited so
       // pendingReads is settled before the matching tool_result can fire.
-      if (event.toolName === "read" || (/read/i.test(event.toolName) && event.toolName !== "okf_read")) {
+      if (
+        event.toolName === "read" ||
+        (/read/i.test(event.toolName) && event.toolName !== "okf_read")
+      ) {
         const pathValue = readPathFrom(input);
         if (pathValue) {
           try {
@@ -613,7 +692,7 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
 
       // Bash-shaped tools: heuristic path extraction from the command string,
       // exact catalog matches only (read-access heuristic; see bash-paths.ts).
-      if (/bash|shell|exec/i.test(event.toolName) && !/^okf_/.test(event.toolName)) {
+      if (/bash|shell|exec/i.test(event.toolName) && !event.toolName.startsWith("okf_")) {
         try {
           const state = await ensureCatalog();
           const matches = extractCatalogPaths(
@@ -621,7 +700,8 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
             state.entries,
             resolveMaybeRelative,
           );
-          if (matches.length > 0) pendingReads.set(event.toolCallId, { via: "bash", entries: matches });
+          if (matches.length > 0)
+            pendingReads.set(event.toolCallId, { via: "bash", entries: matches });
         } catch {
           // catalog unavailable: skip detection silently
         }
@@ -640,8 +720,12 @@ export default function okfGodExtension(pi: ExtensionAPI): void {
       for (const match of pending.entries) {
         // Bash-derived matches are read-access heuristics regardless of kind;
         // native reads map source per entry kind.
-        const source: UsageSource = pending.via === "bash" ? "bash_read" : usageSourceForKind(match.kind);
-        recordUsage({ kind: match.kind, name: match.name, path: match.path, source, ts: Date.now() }, ctx);
+        const source: UsageSource =
+          pending.via === "bash" ? "bash_read" : usageSourceForKind(match.kind);
+        recordUsage(
+          { kind: match.kind, name: match.name, path: match.path, source, ts: Date.now() },
+          ctx,
+        );
       }
     } catch (error) {
       warn(ctx, error);

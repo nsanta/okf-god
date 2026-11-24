@@ -57,14 +57,56 @@ const VALUES = [
 ] as const;
 
 const PREFIXES = [
-  "alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel",
-  "india", "juliet", "kilo", "lima", "mike", "november", "oscar", "papa",
-  "quebec", "romeo", "sierra", "tango", "uniform", "victor", "whiskey", "xray",
+  "alpha",
+  "bravo",
+  "charlie",
+  "delta",
+  "echo",
+  "foxtrot",
+  "golf",
+  "hotel",
+  "india",
+  "juliet",
+  "kilo",
+  "lima",
+  "mike",
+  "november",
+  "oscar",
+  "papa",
+  "quebec",
+  "romeo",
+  "sierra",
+  "tango",
+  "uniform",
+  "victor",
+  "whiskey",
+  "xray",
 ] as const;
 const SUFFIXES = [
-  "anchor", "basin", "beacon", "bridge", "canyon", "cavern", "cipher", "compass",
-  "cove", "crest", "dock", "dune", "fjord", "forge", "garden", "gate",
-  "harbor", "island", "junction", "lagoon", "meadow", "mill", "ridge", "spring",
+  "anchor",
+  "basin",
+  "beacon",
+  "bridge",
+  "canyon",
+  "cavern",
+  "cipher",
+  "compass",
+  "cove",
+  "crest",
+  "dock",
+  "dune",
+  "fjord",
+  "forge",
+  "garden",
+  "gate",
+  "harbor",
+  "island",
+  "junction",
+  "lagoon",
+  "meadow",
+  "mill",
+  "ridge",
+  "spring",
 ] as const;
 
 /** One controlled fact. `conceptSlug` is the file the sentence lives in; for
@@ -152,7 +194,9 @@ function statusFor(index: number): ConceptSpec["status"] {
   return "stable";
 }
 
-function frontmatterFor(concept: Omit<ConceptSpec, "body" | "file" | "facts" | "chainId" | "chainRole">): string {
+function frontmatterFor(
+  concept: Omit<ConceptSpec, "body" | "file" | "facts" | "chainId" | "chainRole">,
+): string {
   const tagLines = concept.tags.map((tag) => `  - ${tag}`).join("\n");
   return [
     "---",
@@ -190,7 +234,11 @@ export function writeIndex(dir: string, concepts: ConceptSpec[]): string {
  * Generate a synthetic OKF v0.2 bundle under `opts.dir` (created recursively,
  * existing files overwritten) and return the ground-truth spec.
  */
-export function generateFixture(opts: { size: FixtureSize; seed: number; dir: string }): FixtureSpec {
+export function generateFixture(opts: {
+  size: FixtureSize;
+  seed: number;
+  dir: string;
+}): FixtureSpec {
   const n = SIZE_CONCEPTS[opts.size];
   if (!Number.isInteger(n)) throw new Error(`generateFixture: unknown size ${opts.size}`);
   if (!Number.isInteger(opts.seed)) throw new Error(`generateFixture: seed must be an integer`);
@@ -321,12 +369,7 @@ export function generateFixture(opts: { size: FixtureSize; seed: number; dir: st
       related.push("- [Documentation index](./index.md)");
     }
 
-    const bodyLines: string[] = [
-      `# ${title}`,
-      "",
-      description,
-      "",
-    ];
+    const bodyLines: string[] = [`# ${title}`, "", description, ""];
 
     if (chain?.role === "A") {
       const spec = chains.find((c) => c.id === chain.chainId)!;

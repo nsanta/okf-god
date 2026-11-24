@@ -50,7 +50,14 @@ describe("UsageRegistry", () => {
 
 describe("isUsageEvent sources", () => {
   it("accepts every legacy source plus the new doc_read and bash_read", () => {
-    const sources = ["okf_read", "skill_read", "agent_read", "agent_spawn", "doc_read", "bash_read"] as const;
+    const sources = [
+      "okf_read",
+      "skill_read",
+      "agent_read",
+      "agent_spawn",
+      "doc_read",
+      "bash_read",
+    ] as const;
     for (const source of sources) {
       expect(isUsageEvent(event({ source }))).toBe(true);
     }

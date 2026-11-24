@@ -19,7 +19,11 @@ export function defaultRoots(cwd: string): CatalogRoots {
       join(home, ".agents", "skills"),
     ],
     doc: [join(cwd, "docs")],
-    agent: [join(cwd, ".pi", "agents"), join(home, ".pi", "agent", "agents"), join(home, ".agents")],
+    agent: [
+      join(cwd, ".pi", "agents"),
+      join(home, ".pi", "agent", "agents"),
+      join(home, ".agents"),
+    ],
   };
 }
 
@@ -80,13 +84,16 @@ export async function loadConfig(cwd: string): Promise<OkfConfig | undefined> {
 
 /** Extract the `exclude` segments from the loaded config, if any. */
 export function configExclude(config: OkfConfig | undefined): string[] {
-  const exclude = config?.exclude?.filter((segment) => typeof segment === "string" && segment.length > 0) ?? [];
+  const exclude =
+    config?.exclude?.filter((segment) => typeof segment === "string" && segment.length > 0) ?? [];
   return exclude;
 }
 
 function readStringList(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) return undefined;
-  const items = value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  const items = value.filter(
+    (item): item is string => typeof item === "string" && item.trim().length > 0,
+  );
   return items;
 }
 

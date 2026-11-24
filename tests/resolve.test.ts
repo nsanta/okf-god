@@ -58,7 +58,11 @@ describe("resolveCatalogEntry path ladder", () => {
 
   it("level 3: resolves a kind-prefixed section-qualified path (doc/guides/deploy)", () => {
     const match = expectEntry(resolveCatalogEntry(entries, { path: "doc/guides/deploy" }));
-    expect(match).toMatchObject({ kind: "doc", name: "deploy", path: join(R1, "docs/guides/deploy.md") });
+    expect(match).toMatchObject({
+      kind: "doc",
+      name: "deploy",
+      path: join(R1, "docs/guides/deploy.md"),
+    });
   });
 
   it("level 3: resolves a root-relative path with .md (docs/mock.md)", () => {
@@ -117,7 +121,11 @@ describe("resolveCatalogEntry path ladder", () => {
 describe("resolveCatalogEntry name handling", () => {
   it("resolves a unique exact name", () => {
     const match = expectEntry(resolveCatalogEntry(entries, { name: "deploy" }));
-    expect(match).toMatchObject({ kind: "doc", name: "deploy", path: join(R1, "docs/guides/deploy.md") });
+    expect(match).toMatchObject({
+      kind: "doc",
+      name: "deploy",
+      path: join(R1, "docs/guides/deploy.md"),
+    });
   });
 
   it("reports ambiguity across kinds with candidates one per line", () => {
@@ -134,8 +142,14 @@ describe("resolveCatalogEntry name handling", () => {
   });
 
   it("falls through to the name when the path matches nothing", () => {
-    const match = expectEntry(resolveCatalogEntry(entries, { path: "elusive/target", name: "status" }));
-    expect(match).toMatchObject({ kind: "doc", name: "status", path: join(R2, "reports/status.md") });
+    const match = expectEntry(
+      resolveCatalogEntry(entries, { path: "elusive/target", name: "status" }),
+    );
+    expect(match).toMatchObject({
+      kind: "doc",
+      name: "status",
+      path: join(R2, "reports/status.md"),
+    });
   });
 
   it("requires a path or a name", () => {

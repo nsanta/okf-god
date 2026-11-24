@@ -85,7 +85,10 @@ export type CatalogRoots = Record<CatalogKind, string[]>;
  * frontmatter only. Never throws for individual files: unreadable or
  * frontmatter-less files yield minimal entries or are skipped, per OKF §11.
  */
-export async function scanCatalog(roots: CatalogRoots, opts: ScanOptions = {}): Promise<CatalogEntry[]> {
+export async function scanCatalog(
+  roots: CatalogRoots,
+  opts: ScanOptions = {},
+): Promise<CatalogEntry[]> {
   const entries: CatalogEntry[] = [];
   const seen = new Set<string>(); // `${kind}:${name}` — first wins
 
@@ -112,11 +115,16 @@ const SKILL_FILE = "SKILL.md";
 async function walkRoot(root: string, kind: CatalogKind, exclude?: string[]): Promise<string[]> {
   const files: string[] = [];
   const excludeSet = new Set(exclude ?? []);
-  await walk(root, root, kind, files, excludeSet);
+  await walk(root, kind, files, excludeSet);
   return files;
 }
 
-async function walk(root: string, dir: string, kind: CatalogKind, out: string[], exclude: Set<string>): Promise<void> {
+async function walk(
+  dir: string,
+  kind: CatalogKind,
+  out: string[],
+  exclude: Set<string>,
+): Promise<void> {
   let dirents;
   try {
     dirents = await readdir(dir, { withFileTypes: true });
@@ -127,10 +135,14 @@ async function walk(root: string, dir: string, kind: CatalogKind, out: string[],
   for (const dirent of dirents) {
     const full = join(dir, dirent.name);
     if (dirent.isDirectory()) {
-      if (dirent.name.startsWith(".") || EXCLUDED_SEGMENTS.has(dirent.name) || exclude.has(dirent.name)) {
+      if (
+        dirent.name.startsWith(".") ||
+        EXCLUDED_SEGMENTS.has(dirent.name) ||
+        exclude.has(dirent.name)
+      ) {
         continue;
       }
-      await walk(root, full, kind, out, exclude);
+      await walk(full, kind, out, exclude);
       continue;
     }
     if (!dirent.isFile()) continue;
@@ -192,7 +204,9 @@ export function buildEntry(
     // skill: frontmatter `name`, else the directory name (degenerate
     // root-level SKILL.md: the root's basename).
     const fmName = readString(data["name"]);
-    const dirName = section ? section.split("/").pop()! : root.split(sep).filter(Boolean).pop() ?? baseName;
+    const dirName = section
+      ? section.split("/").pop()!
+      : (root.split(sep).filter(Boolean).pop() ?? baseName);
     name = fmName ?? dirName;
   } else if (kind === "agent") {
     // agent: frontmatter `name`, else the filename

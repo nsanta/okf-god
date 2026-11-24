@@ -20,7 +20,9 @@ describe("deriveTrustTier (OKF §5.3)", () => {
   });
 
   it("returns human-reviewed when any human:<id> verifier is present", () => {
-    expect(deriveTrustTier({ by: "human:ahormati", at: "2026-06-25T09:00:00Z" })).toBe("human-reviewed");
+    expect(deriveTrustTier({ by: "human:ahormati", at: "2026-06-25T09:00:00Z" })).toBe(
+      "human-reviewed",
+    );
     expect(
       deriveTrustTier([
         { by: "process:finance-nightly", at: "2026-06-26T02:00:00Z" },
@@ -30,8 +32,12 @@ describe("deriveTrustTier (OKF §5.3)", () => {
   });
 
   it("normalizes a bare { by, at } mapping to a one-element list (§5.2)", () => {
-    expect(deriveTrustTier({ by: "human:ahormati", at: "2026-06-25T09:00:00Z" })).toBe("human-reviewed");
-    expect(deriveTrustTier({ by: "process:nightly", at: "2026-06-25T09:00:00Z" })).toBe("machine-confirmed");
+    expect(deriveTrustTier({ by: "human:ahormati", at: "2026-06-25T09:00:00Z" })).toBe(
+      "human-reviewed",
+    );
+    expect(deriveTrustTier({ by: "process:nightly", at: "2026-06-25T09:00:00Z" })).toBe(
+      "machine-confirmed",
+    );
   });
 
   it("tolerates malformed entries without throwing", () => {

@@ -82,7 +82,9 @@ export class UsagePopupComponent implements Component {
     const titleW = visibleWidth(titleStr);
     const left = "─".repeat(Math.floor((innerW - titleW) / 2));
     const right = "─".repeat(Math.max(0, innerW - titleW - left.length));
-    lines.push(th.fg("border", `╭${left}`) + th.fg("accent", titleStr) + th.fg("border", `${right}╮`));
+    lines.push(
+      th.fg("border", `╭${left}`) + th.fg("accent", titleStr) + th.fg("border", `${right}╮`),
+    );
 
     const capacity = Math.max(1, Math.min(CONTENT_CAPACITY, this.rows.length));
     this.clampScroll(capacity);
@@ -133,7 +135,11 @@ export class UsagePopupComponent implements Component {
 
   /** Pad (or truncate) a styled line to the inner width so borders align. */
   private padded(line: string, innerW: number): string {
-    return this.theme.fg("border", "│") + truncateToWidth(line, innerW, "...", true) + this.theme.fg("border", "│");
+    return (
+      this.theme.fg("border", "│") +
+      truncateToWidth(line, innerW, "...", true) +
+      this.theme.fg("border", "│")
+    );
   }
 
   private clampScroll(capacity: number): void {

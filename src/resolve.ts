@@ -56,7 +56,8 @@ function normalizePathQuery(raw: string): string {
 }
 
 // Level 1: exact absolute path (historical behavior).
-const matchAbsolutePath: PathMatcher = (entries, raw) => entries.filter((entry) => entry.path === raw);
+const matchAbsolutePath: PathMatcher = (entries, raw) =>
+  entries.filter((entry) => entry.path === raw);
 
 // Level 2: display form `kind/name`; `kind:name` is unique by scan dedupe.
 const matchDisplayForm: PathMatcher = (entries, raw) => {
@@ -122,7 +123,9 @@ export function resolveCatalogEntry(entries: CatalogEntry[], query: ResolveQuery
         error: `Name "${trimmedName}" is ambiguous across kinds:\n${listCandidates(matches)}\nPass an exact path instead.`,
       };
     }
-    return { error: `No catalog entry named "${trimmedName}". Try okf_search to find resource names.` };
+    return {
+      error: `No catalog entry named "${trimmedName}". Try okf_search to find resource names.`,
+    };
   }
 
   return { error: "Provide either a resource path or a resource name." };

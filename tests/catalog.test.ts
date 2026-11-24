@@ -33,16 +33,31 @@ describe("scanCatalog", () => {
     // No frontmatter name -> directory name is used.
     write("skills/beta/SKILL.md", "---\ndescription: Beta helps too.\ntags: []\n---\nBody.\n");
     // Excluded: 99-archive path segment.
-    write("skills/99-archive/gamma/SKILL.md", "---\nname: gamma\ndescription: Archived.\ntags: []\n---\n");
+    write(
+      "skills/99-archive/gamma/SKILL.md",
+      "---\nname: gamma\ndescription: Archived.\ntags: []\n---\n",
+    );
     // Excluded: hidden directory below the root.
-    write("skills/.hidden/delta/SKILL.md", "---\nname: delta\ndescription: Hidden.\ntags: []\n---\n");
+    write(
+      "skills/.hidden/delta/SKILL.md",
+      "---\nname: delta\ndescription: Hidden.\ntags: []\n---\n",
+    );
     // Excluded: node_modules path segment.
-    write("skills/node_modules/epsilon/SKILL.md", "---\nname: epsilon\ndescription: Deps.\ntags: []\n---\n");
+    write(
+      "skills/node_modules/epsilon/SKILL.md",
+      "---\nname: epsilon\ndescription: Deps.\ntags: []\n---\n",
+    );
 
-    write("docs/guide.md", "---\ntitle: User Guide\ndescription: How to use it.\ntags: [guide]\n---\n");
+    write(
+      "docs/guide.md",
+      "---\ntitle: User Guide\ndescription: How to use it.\ntags: [guide]\n---\n",
+    );
     write("docs/deep/nested/notes.md", "---\ndescription: Nested notes.\ntags: [notes]\n---\n");
 
-    write("agents/helper.md", "---\nname: helper-agent\ndescription: A helpful agent.\ntags: [dev]\nstatus: beta\n---\n");
+    write(
+      "agents/helper.md",
+      "---\nname: helper-agent\ndescription: A helpful agent.\ntags: [dev]\nstatus: beta\n---\n",
+    );
     // No frontmatter at all -> filename fallback, empty metadata.
     write("agents/plain.md", "Just text, no frontmatter.\n");
 
@@ -78,13 +93,20 @@ describe("scanCatalog", () => {
   });
 
   it("picks up file changes on rescan with a shared cache (mtime invalidation)", async () => {
-    write("skills/refresh/SKILL.md", "---\nname: refresh\ndescription: Before edit.\ntags: []\n---\n");
+    write(
+      "skills/refresh/SKILL.md",
+      "---\nname: refresh\ndescription: Before edit.\ntags: []\n---\n",
+    );
     const cache = new CatalogCache();
     const before = await scanCatalog(fixtureRoots(), { cache });
     expect(before.find((entry) => entry.name === "refresh")?.description).toBe("Before edit.");
 
     const changedAt = new Date(Date.now() + 5000);
-    write("skills/refresh/SKILL.md", "---\nname: refresh\ndescription: After edit.\ntags: []\n---\n", changedAt);
+    write(
+      "skills/refresh/SKILL.md",
+      "---\nname: refresh\ndescription: After edit.\ntags: []\n---\n",
+      changedAt,
+    );
 
     const after = await scanCatalog(fixtureRoots(), { cache });
     expect(after.find((entry) => entry.name === "refresh")?.description).toBe("After edit.");
@@ -106,17 +128,27 @@ describe("scanCatalog", () => {
       "---\nname: resize\ndescription: Longer description now.\ntags: []\n---\nExtra body.\n",
       pinned,
     );
-    if (statBefore) utimesSync(join(FIXTURES, "skills/resize/SKILL.md"), new Date(statBefore.mtimeMs), new Date(statBefore.mtimeMs));
+    if (statBefore)
+      utimesSync(
+        join(FIXTURES, "skills/resize/SKILL.md"),
+        new Date(statBefore.mtimeMs),
+        new Date(statBefore.mtimeMs),
+      );
 
     const after = await scanCatalog(fixtureRoots(), { cache });
-    expect(after.find((entry) => entry.name === "resize")?.description).toBe("Longer description now.");
+    expect(after.find((entry) => entry.name === "resize")?.description).toBe(
+      "Longer description now.",
+    );
   });
 
   it("keeps the first entry when names duplicate across roots", async () => {
     write("agents/dup.md", "---\nname: same-name\ndescription: First wins.\ntags: []\n---\n");
     const roots = fixtureRoots();
     roots.agent = [join(FIXTURES, "agents"), join(FIXTURES, "agents-dup")];
-    write("agents-dup/other.md", "---\nname: same-name\ndescription: Second loses.\ntags: []\n---\n");
+    write(
+      "agents-dup/other.md",
+      "---\nname: same-name\ndescription: Second loses.\ntags: []\n---\n",
+    );
 
     const entries = await scanCatalog(roots);
     const dupes = entries.filter((entry) => entry.kind === "agent" && entry.name === "same-name");

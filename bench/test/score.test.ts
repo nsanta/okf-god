@@ -64,17 +64,25 @@ describe("scoreRun", () => {
   });
 
   it("grades through normalization (case, spacing, punctuation, quotes)", () => {
-    expect(scoreRun("ANSWER: \"42  MS.\"", task("42 ms")).correct).toBe(true);
+    expect(scoreRun('ANSWER: "42  MS."', task("42 ms")).correct).toBe(true);
   });
 
   it("grades wrong values and fallback answers as incorrect", () => {
     expect(scoreRun("ANSWER: 128 ms", task("42 ms")).correct).toBe(false);
     const fallback = scoreRun("The value is 128 ms somewhere.", task("42 ms"));
-    expect(fallback).toEqual({ correct: false, extracted: "The value is 128 ms somewhere.", usedFallback: true });
+    expect(fallback).toEqual({
+      correct: false,
+      extracted: "The value is 128 ms somewhere.",
+      usedFallback: true,
+    });
   });
 
   it("grades empty output as incorrect with no extraction", () => {
-    expect(scoreRun("", task("42 ms"))).toEqual({ correct: false, extracted: null, usedFallback: false });
+    expect(scoreRun("", task("42 ms"))).toEqual({
+      correct: false,
+      extracted: null,
+      usedFallback: false,
+    });
   });
 
   it("accepts a run object with finalText as well as a bare string", () => {

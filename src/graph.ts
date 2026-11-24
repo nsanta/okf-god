@@ -93,7 +93,7 @@ export class LinkGraph {
 
     // Drop cache entries for files that vanished.
     const livePaths = new Set(entries.map((entry) => entry.path));
-    for (const path of [...this.linkCache.keys()]) {
+    for (const path of this.linkCache.keys()) {
       if (!livePaths.has(path)) {
         this.linkCache.delete(path);
         this.fingerprints.delete(path);
@@ -116,7 +116,10 @@ export class LinkGraph {
     }
   }
 
-  private async targetsFor(entry: CatalogEntry, read: (path: string) => Promise<string>): Promise<string[]> {
+  private async targetsFor(
+    entry: CatalogEntry,
+    read: (path: string) => Promise<string>,
+  ): Promise<string[]> {
     let fingerprint: FileFingerprint;
     try {
       const info = await stat(entry.path);
@@ -247,8 +250,6 @@ export class LinkGraph {
     const selected = [...degrees.entries()]
       .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
       .slice(0, Math.max(0, Math.floor(maxNodes)));
-    const selectedSet = new Set(selected.map(([path]) => path));
-
     const lines: string[] = ["flowchart LR"];
     if (selected.length === 0) {
       lines.push("    %% empty graph");
@@ -284,7 +285,10 @@ function mermaidLabel(label: string): string {
 }
 
 /** Convenience factory: build a fully-populated graph in one call. */
-export async function buildLinkGraph(entries: CatalogEntry[], opts: BuildGraphOptions = {}): Promise<LinkGraph> {
+export async function buildLinkGraph(
+  entries: CatalogEntry[],
+  opts: BuildGraphOptions = {},
+): Promise<LinkGraph> {
   const graph = new LinkGraph();
   await graph.rebuild(entries, opts);
   return graph;

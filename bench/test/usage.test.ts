@@ -45,7 +45,13 @@ function multiRoundStream(): string {
     stopReason: "stop",
   });
   return [
-    line({ type: "session", version: 3, id: "s1", timestamp: "2026-01-01T00:00:00.000Z", cwd: "/f" }),
+    line({
+      type: "session",
+      version: 3,
+      id: "s1",
+      timestamp: "2026-01-01T00:00:00.000Z",
+      cwd: "/f",
+    }),
     line({ type: "agent_start" }),
     line({ type: "turn_start" }),
     line({ type: "message_start", message: { role: "user", content: "q", timestamp: 0 } }),
@@ -103,7 +109,10 @@ describe("parseEventStream", () => {
           stopReason: "stop",
         }),
       }),
-      line({ type: "message_end", message: { role: "assistant", content: [], stopReason: "stop" } }),
+      line({
+        type: "message_end",
+        message: { role: "assistant", content: [], stopReason: "stop" },
+      }),
     ].join("");
     const stats = parseEventStream(stream);
     expect(stats.inputTokens).toBe(5);
@@ -131,7 +140,7 @@ describe("parseEventStream", () => {
       "[]\n",
       line({ type: "some_future_event", payload: { nested: true } }),
       line({ type: "message_end", message: assistantMessage({}) }),
-      "{\"type\":\"message_end\",\"message\":{\"role\":\"assistant\"\n", // truncated JSON
+      '{"type":"message_end","message":{"role":"assistant"\n', // truncated JSON
     ].join("");
     const stats = parseEventStream(stream);
     expect(stats.modelCalls).toBe(1);
@@ -159,7 +168,7 @@ describe("parseEventStream", () => {
 
   it("returns all zeros for empty, whitespace-only, or garbage stdout", () => {
     const expected: PiRunStats = emptyStats();
-    for (const input of ["", "\n\n", "garbage\n\n{" ]) {
+    for (const input of ["", "\n\n", "garbage\n\n{"]) {
       expect(parseEventStream(input)).toEqual(expected);
     }
   });

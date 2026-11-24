@@ -38,7 +38,11 @@ export function createRng(seed: number): Rng {
       return Math.floor(next() * maxExclusive);
     },
     range(minInclusive: number, maxInclusive: number): number {
-      if (!Number.isInteger(minInclusive) || !Number.isInteger(maxInclusive) || maxInclusive < minInclusive) {
+      if (
+        !Number.isInteger(minInclusive) ||
+        !Number.isInteger(maxInclusive) ||
+        maxInclusive < minInclusive
+      ) {
         throw new Error(
           `rng.range: needs integers min <= max, got ${minInclusive}..${maxInclusive}`,
         );

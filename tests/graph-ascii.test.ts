@@ -81,10 +81,7 @@ describe("toAsciiGraph", () => {
 
     // Convention pin: pal has no outgoing edges, so it appears ONLY as a
     // target under its source — never as a separate `pal ◀─` line.
-    expect(toAsciiGraph(graph).lines).toEqual([
-      "brk ──▶ pal",
-      "  └─▶ /nowhere/ghost.md ✗",
-    ]);
+    expect(toAsciiGraph(graph).lines).toEqual(["brk ──▶ pal", "  └─▶ /nowhere/ghost.md ✗"]);
   });
 
   it("lists isolated selected nodes under the isolated: marker in selection order", async () => {
@@ -135,7 +132,16 @@ describe("toAsciiGraph", () => {
 
   it("defaults to a 12-node cap without options", async () => {
     // Zero-padded names so the lexicographic path tie-break is numeric order.
-    const defs = [{ name: "center", body: Array.from({ length: 12 }, (_, i) => `[doc${String(i + 1).padStart(2, "0")}](./doc${String(i + 1).padStart(2, "0")}.md)`).join(" ") }];
+    const defs = [
+      {
+        name: "center",
+        body: Array.from(
+          { length: 12 },
+          (_, i) =>
+            `[doc${String(i + 1).padStart(2, "0")}](./doc${String(i + 1).padStart(2, "0")}.md)`,
+        ).join(" "),
+      },
+    ];
     for (let i = 1; i <= 12; i++) defs.push({ name: `doc${String(i).padStart(2, "0")}`, body: "" });
     const graph = await graphFrom(defs);
 

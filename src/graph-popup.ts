@@ -40,10 +40,13 @@ export class GraphPopupComponent implements Component {
     const titleW = visibleWidth(titleStr);
     const left = "─".repeat(Math.floor((innerW - titleW) / 2));
     const right = "─".repeat(Math.max(0, innerW - titleW - left.length));
-    lines.push(th.fg("border", `╭${left}`) + th.fg("accent", titleStr) + th.fg("border", `${right}╮`));
+    lines.push(
+      th.fg("border", `╭${left}`) + th.fg("accent", titleStr) + th.fg("border", `${right}╮`),
+    );
 
     // Fixed stats header: total/shown nodes, link count, broken count.
-    const stats = ` nodes ${this.result.shownNodes}/${this.result.totalNodes}` +
+    const stats =
+      ` nodes ${this.result.shownNodes}/${this.result.totalNodes}` +
       ` · links ${this.result.stats.edges} · broken ${this.result.stats.broken} `;
     lines.push(this.padded(th.fg("dim", stats), innerW));
 
@@ -55,7 +58,9 @@ export class GraphPopupComponent implements Component {
     if (this.result.lines.length > capacity) {
       const from = this.scroll + 1;
       const to = this.scroll + capacity;
-      lines.push(this.padded(th.fg("dim", ` ↑/↓ ${from}-${to} of ${this.result.lines.length} `), innerW));
+      lines.push(
+        this.padded(th.fg("dim", ` ↑/↓ ${from}-${to} of ${this.result.lines.length} `), innerW),
+      );
     }
     lines.push(this.padded(th.fg("dim", HINT), innerW));
     lines.push(th.fg("border", `╰${"─".repeat(innerW)}╯`));
@@ -109,7 +114,11 @@ export class GraphPopupComponent implements Component {
 
   /** Pad (or truncate) a styled line to the inner width so borders align. */
   private padded(line: string, innerW: number): string {
-    return this.theme.fg("border", "│") + truncateToWidth(line, innerW, "...", true) + this.theme.fg("border", "│");
+    return (
+      this.theme.fg("border", "│") +
+      truncateToWidth(line, innerW, "...", true) +
+      this.theme.fg("border", "│")
+    );
   }
 
   private clampScroll(capacity: number): void {

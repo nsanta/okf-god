@@ -317,7 +317,14 @@ describe("summarize", () => {
         totalTokens: 250,
         wallMs: 3000,
       }),
-      rec({ arm: "okf-god", suite: "fact-qa", runId: "c", inputTokens: 300, totalTokens: 400, wallMs: 2000 }),
+      rec({
+        arm: "okf-god",
+        suite: "fact-qa",
+        runId: "c",
+        inputTokens: 300,
+        totalTokens: 400,
+        wallMs: 2000,
+      }),
     ]);
     expect(rows).toHaveLength(2);
     const std = rows.find((r) => r.arm === "standard")!;

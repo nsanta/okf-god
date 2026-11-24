@@ -129,16 +129,7 @@ export function buildPiArgs(arm: Arm, prompt: string, opts: PiArgOptions): strin
   if (arm === "okf-god") {
     args.push("-e", opts.extensionPath);
   }
-  args.push(
-    "--mode",
-    "json",
-    "--model",
-    opts.model,
-    "--thinking",
-    opts.thinking,
-    "-p",
-    prompt,
-  );
+  args.push("--mode", "json", "--model", opts.model, "--thinking", opts.thinking, "-p", prompt);
   return args;
 }
 
@@ -485,7 +476,9 @@ export function renderPlan(info: PlanInfo): string {
     "WARNING: a live run (--yes) spends real API tokens on every invocation.",
   ];
   if (!info.countsExact) {
-    lines.push("Use --dry-run to materialize fixture + tasks for exact counts, or --yes to execute.");
+    lines.push(
+      "Use --dry-run to materialize fixture + tasks for exact counts, or --yes to execute.",
+    );
   }
   return lines.join("\n");
 }
@@ -995,7 +988,9 @@ async function main(argv: readonly string[]): Promise<number> {
     ),
     "utf8",
   );
-  console.error(`wrote ${summaryPath} (${records.length} run record${records.length === 1 ? "" : "s"})`);
+  console.error(
+    `wrote ${summaryPath} (${records.length} run record${records.length === 1 ? "" : "s"})`,
+  );
 
   if (fatal !== null) {
     console.error(`fatal: ${fatal instanceof Error ? fatal.message : String(fatal)}`);
@@ -1009,8 +1004,7 @@ async function main(argv: readonly string[]): Promise<number> {
 }
 
 const isMain =
-  process.argv[1] !== undefined &&
-  import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 
 if (isMain) {
   main(process.argv.slice(2)).then((code) => {

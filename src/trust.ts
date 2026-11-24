@@ -33,7 +33,11 @@ export function deriveTrustTier(verified: unknown): TrustTier {
  * comparison, no TTL). Unparseable or absent values are never stale.
  */
 export function isStale(staleAfter: unknown, now: Date = new Date()): boolean {
-  if (typeof staleAfter !== "string" && !(staleAfter instanceof Date) && typeof staleAfter !== "number") {
+  if (
+    typeof staleAfter !== "string" &&
+    !(staleAfter instanceof Date) &&
+    typeof staleAfter !== "number"
+  ) {
     return false;
   }
   const instant = new Date(staleAfter as string | number | Date);
@@ -55,7 +59,8 @@ export function normalizeStatus(value: unknown): string {
 /** Normalize a `verified` value into a list of verification events. */
 export function normalizeVerifiedList(verified: unknown): unknown[] {
   if (verified === null || verified === undefined) return [];
-  if (Array.isArray(verified)) return verified.filter((item) => item !== null && item !== undefined);
+  if (Array.isArray(verified))
+    return verified.filter((item) => item !== null && item !== undefined);
   if (typeof verified === "object") return [verified]; // bare { by, at } mapping (§5.2)
   return [];
 }

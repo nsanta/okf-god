@@ -13,10 +13,34 @@ function entry(partial: Partial<CatalogEntry> & Pick<CatalogEntry, "kind" | "nam
 
 describe("searchEntries", () => {
   const entries: CatalogEntry[] = [
-    entry({ kind: "skill", name: "build-runner", title: "Build Runner", description: "Runs builds.", tags: ["ci", "alpha"] }),
-    entry({ kind: "doc", name: "alpha-guide", title: "Guide", description: "Documents alpha usage.", tags: [] }),
-    entry({ kind: "agent", name: "reviewer", title: "Reviewer", description: "Reviews code.", tags: ["quality"] }),
-    entry({ kind: "skill", name: "test-helper", title: "Test Helper", description: "Helps with tests.", tags: ["vitest"] }),
+    entry({
+      kind: "skill",
+      name: "build-runner",
+      title: "Build Runner",
+      description: "Runs builds.",
+      tags: ["ci", "alpha"],
+    }),
+    entry({
+      kind: "doc",
+      name: "alpha-guide",
+      title: "Guide",
+      description: "Documents alpha usage.",
+      tags: [],
+    }),
+    entry({
+      kind: "agent",
+      name: "reviewer",
+      title: "Reviewer",
+      description: "Reviews code.",
+      tags: ["quality"],
+    }),
+    entry({
+      kind: "skill",
+      name: "test-helper",
+      title: "Test Helper",
+      description: "Helps with tests.",
+      tags: ["vitest"],
+    }),
   ];
 
   it("ranks tag matches (x3) above name matches (x2.5)", () => {

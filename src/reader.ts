@@ -14,10 +14,14 @@ export const DEFAULT_MAX_CHARS = 20000;
  * text ends with an explicit marker line telling the model where to read the
  * rest from.
  */
-export async function readResource(entry: CatalogEntry, maxChars: number = DEFAULT_MAX_CHARS): Promise<ReadResult> {
+export async function readResource(
+  entry: CatalogEntry,
+  maxChars: number = DEFAULT_MAX_CHARS,
+): Promise<ReadResult> {
   const raw = await readFile(entry.path, "utf8");
   const totalChars = raw.length;
-  const bounded = Number.isFinite(maxChars) && maxChars > 0 ? Math.floor(maxChars) : DEFAULT_MAX_CHARS;
+  const bounded =
+    Number.isFinite(maxChars) && maxChars > 0 ? Math.floor(maxChars) : DEFAULT_MAX_CHARS;
 
   if (totalChars <= bounded) {
     return { text: raw, truncated: false, totalChars };

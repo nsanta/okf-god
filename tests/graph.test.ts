@@ -2,7 +2,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import { scanCatalog, type CatalogKind, type CatalogRoots } from "../src/catalog.ts";
+import { scanCatalog, type CatalogKind } from "../src/catalog.ts";
 import { buildLinkGraph, extractLinks } from "../src/graph.ts";
 
 const FIXTURES = mkdtempSync(join(tmpdir(), "okf-graph-"));
@@ -49,11 +49,20 @@ describe("extractLinks", () => {
 
 describe("link graph resolution", () => {
   it("resolves bundle-relative /x.md against the entry's root, and relative targets against the source directory", async () => {
-    write("resolve/tables/orders.md", "---\ntype: BigQuery Table\n---\nSee [customers](/tables/customers.md) and [notes](./notes.md).\n");
-    write("resolve/tables/customers.md", "---\ntype: BigQuery Table\n---\nBack to [orders](/tables/orders.md).\n");
+    write(
+      "resolve/tables/orders.md",
+      "---\ntype: BigQuery Table\n---\nSee [customers](/tables/customers.md) and [notes](./notes.md).\n",
+    );
+    write(
+      "resolve/tables/customers.md",
+      "---\ntype: BigQuery Table\n---\nBack to [orders](/tables/orders.md).\n",
+    );
     write("resolve/tables/notes.md", "---\ntype: Reference\n---\nNeighbor.\n");
     // deep/relative.md uses ../ to climb back to the root.
-    write("resolve/deep/relative.md", "---\ntype: Reference\n---\nClimb to [customers](../tables/customers.md).\n");
+    write(
+      "resolve/deep/relative.md",
+      "---\ntype: Reference\n---\nClimb to [customers](../tables/customers.md).\n",
+    );
 
     const { root, graph } = await buildBundle("resolve");
     const orders = join(root, "tables/orders.md");
@@ -82,7 +91,10 @@ describe("link graph resolution", () => {
   });
 
   it("tolerates broken links (§6.1) and counts them in stats", async () => {
-    write("broken/broken.md", "---\ntype: Reference\n---\nDangling [ghost](/nowhere/ghost.md) and [sibling](./missing.md).\n");
+    write(
+      "broken/broken.md",
+      "---\ntype: Reference\n---\nDangling [ghost](/nowhere/ghost.md) and [sibling](./missing.md).\n",
+    );
     write("broken/tables/customers.md", "---\ntype: BigQuery Table\n---\n");
 
     const { root, graph } = await buildBundle("broken");
@@ -102,7 +114,10 @@ describe("toMermaid", () => {
   it("caps nodes and ranks by degree (highest first), with stable output", async () => {
     // hub.md links to many leaves; every leaf backlinks hub.
     const leafCount = 8;
-    const links = Array.from({ length: leafCount }, (_, i) => `[leaf${i}](./leaves/leaf${i}.md)`).join(" ");
+    const links = Array.from(
+      { length: leafCount },
+      (_, i) => `[leaf${i}](./leaves/leaf${i}.md)`,
+    ).join(" ");
     write("mermaid/hub.md", `---\ntype: Reference\n---\n${links}\n`);
     for (let i = 0; i < leafCount; i++) {
       write(`mermaid/leaves/leaf${i}.md`, `---\ntype: Reference\n---\nBack to [hub](../hub.md).\n`);
@@ -138,7 +153,10 @@ describe("toMermaid", () => {
     write("nodes-view/a.md", "---\ntype: Reference\n---\nSee [hub](./hub.md).\n");
     write("nodes-view/hub.md", "---\ntype: Reference\n---\n");
     const { root, graph } = await buildBundle("nodes-view");
-    const paths = graph.nodes().map((entry) => entry.path).sort();
+    const paths = graph
+      .nodes()
+      .map((entry) => entry.path)
+      .sort();
     expect(paths).toEqual([join(root, "a.md"), join(root, "hub.md")].sort());
     expect(graph.nodes()).toEqual(graph.nodes());
   });

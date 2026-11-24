@@ -43,7 +43,11 @@ const WEIGHTS = {
  * Zero-token queries return nothing. Results are sorted by score desc and
  * capped (8 by default).
  */
-export function searchEntries(entries: CatalogEntry[], query: string, opts: SearchOptions = {}): SearchMatch[] {
+export function searchEntries(
+  entries: CatalogEntry[],
+  query: string,
+  opts: SearchOptions = {},
+): SearchMatch[] {
   const tokens = tokenize(query);
   if (tokens.length === 0) return [];
 
@@ -107,7 +111,11 @@ function matchesTokenList(values: string[] | undefined, token: string): boolean 
   return values.some((value) => tokensOf(value).includes(token));
 }
 
-function matchesTokenText(text: string | undefined, token: string, mode: "exact" | "prefix"): boolean {
+function matchesTokenText(
+  text: string | undefined,
+  token: string,
+  mode: "exact" | "prefix",
+): boolean {
   const tokens = tokensOf(text);
   if (mode === "exact") return tokens.includes(token);
   return tokens.some((candidate) => candidate.startsWith(token));
