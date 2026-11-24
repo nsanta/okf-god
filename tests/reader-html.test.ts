@@ -56,6 +56,33 @@ describe("readResource: OKF-HTML entries", () => {
     expect(result.text).not.toContain("<");
   });
 
+  it("drops UI-chrome element content (button/select/option/template/svg)", async () => {
+    writeFileSync(
+      join(DIR, "chrome.html"),
+      [
+        "<!doctype html>",
+        "<html>",
+        "<body>",
+        "  <nav>",
+        "    <button>Dusk Spectrum</button>",
+        "    <select><option>Dark</option><option>Light</option></select>",
+        '  <svg><text>icon glyph</text></svg>',
+        "  </nav>",
+        "  <main><h1>Real Content</h1><p>Body text.</p></main>",
+        "</body>",
+        "</html>",
+      ].join("\n"),
+      "utf8",
+    );
+    const result = await readResource(entryAt("chrome.html"));
+    expect(result.text).not.toContain("Dusk Spectrum");
+    expect(result.text).not.toContain("Dark");
+    expect(result.text).not.toContain("Light");
+    expect(result.text).not.toContain("icon glyph");
+    expect(result.text).toContain("Real Content");
+    expect(result.text).toContain("Body text.");
+  });
+
   it("collapses runs of blank lines from deeply nested markup", async () => {
     writeFileSync(
       join(DIR, "nested.html"),

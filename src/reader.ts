@@ -16,8 +16,9 @@ export const DEFAULT_MAX_CHARS = 20000;
  * rest from.
  *
  * OKF-HTML v0.1: `.html` entries return extracted readable text instead of
- * raw markup — doctype/head/script/style content is dropped, block-level
- * tags become newlines (h1–h6 and li land on their own lines), and runs of
+ * raw markup — doctype/head/script/style content is dropped along with UI
+ * chrome elements (button/select/option/template/svg), block-level tags
+ * become newlines (h1–h6 and li land on their own lines), and runs of
  * blank lines collapse. `maxChars` and the truncation marker then apply to
  * the extracted text.
  */
@@ -64,7 +65,12 @@ function htmlToReadableText(raw: string): string {
   region = region
     .replace(/<!--[\s\S]*?-->/g, " ") // comments
     .replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, " ") // defensive: head inside a no-body region
-    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, " "); // code, never prose
+    .replace(
+      // prose-never content: code/style plus UI chrome (toggle buttons,
+      // palette selects, inline icons) whose labels would pollute the text
+      /<(script|style|button|select|option|template|svg)\b[^>]*>[\s\S]*?<\/\1>/gi,
+      " ",
+    );
 
   region = region.replace(BLOCK_TAG, "\n").replace(/<[^>]*>/g, "");
 
