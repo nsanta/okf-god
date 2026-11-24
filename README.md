@@ -17,7 +17,10 @@ graph**, tracks which resources the agent actually used, and displays that usage
 ## Install
 
 ```bash
-# one-liner: pi clones the repo, installs runtime deps, registers the extension
+# from npm (recommended)
+pi install npm:okf-god
+
+# or the one-liner from GitHub: pi clones the repo, installs runtime deps, registers the extension
 pi install https://github.com/nsanta/okf-god
 
 # for development: clone and load in place (your dependency tree, your edits)
@@ -112,7 +115,7 @@ naming a cataloged agent). Detection is defensive: unknown event shapes never th
 ## Development
 
 ```bash
-npm test          # vitest — 58 tests, 9 files
+npm test          # vitest — 161 tests, 20 files
 npm run typecheck # tsc --noEmit (strict)
 ```
 

@@ -3,8 +3,17 @@
   "version": "0.1.1",
   "description": "Pi extension: OKF-format skills, docs, and agents catalog with requirement-based lazy loading and usage display.",
   "type": "module",
+  "keywords": ["pi-package", "pi", "pi-coding-agent", "okf", "skills", "knowledge-catalog", "lazy-loading"],
   "license": "MIT",
-  "keywords": ["pi-package"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nsanta/okf-god.git"
+  },
+  "files": [
+    "src",
+    "docs",
+    "CHANGELOG.md"
+  ],
   "main": "src/index.ts",
   "pi": {
     "extensions": ["./src/index.ts"]
